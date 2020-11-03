@@ -1,5 +1,8 @@
 import pandas as pd
 
+# Main parser for crossword
+# Returns a dictionary with words and clues
+
 
 def makeDictionary():
     data = pd.read_excel("Words,clues.xlsx")
@@ -23,20 +26,26 @@ def shortestSort(d):
         array.append((key, d.get(key)))
     return array
 
+# function that finds out how many characters these two words have in common
+# for heuristics
+
 
 def countIntersections(word1, word2):
     inter = set(word1).intersection(word2)
     return len(inter)
 
+# Compare function for sorting
+
 
 def compareInt(key1, interDict):
     return (interDict.get(key1), key1)
-
 
 # Takes in a dictionary and sorts it according to which words have the most
 # letters in common with the current Word list
 # Returns a sorted tuple list [(key, value), ...] with the words that intersect
 # with the most other words first
+
+
 def mostIntersectionsSort(d, currentWords):
     keys = list(d.keys())
     interDict = []
