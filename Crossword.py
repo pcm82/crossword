@@ -22,25 +22,25 @@ class Crossword:
     # input the word to place, and the row and column location of the first letter
     # input the direction, 0 for horizontal, 1 for vertical
     def place_word(self, word, row, col, direction):
-        letters = word.split
+        letters = list(word)
         if direction == 1:
             for i in range(len(letters)):
                 letter = letters[i]
-                if (self.crossword[row + i, col] != None & self.crossword[row + i, col] != letter):
+                if ((self.crossword[row + i][col]) != None and (self.crossword[row + i][col] != letter)):
                     raise ValueError
                 else:
-                    self.crossword[row + i, col] = letter
+                    self.crossword[row + i][col] = letter
         else:
             for i in range(len(letters)):
                 letter = letters[i]
-                if (self.crossword[row, col + i] != None & self.crossword[row, col + i] != letter):
+                if (self.crossword[row][col + i] != None and self.crossword[row][col + i] != letter):
                     raise ValueError
                 else:
-                    self.crossword[row, col + i] = letter
+                    self.crossword[row][col + i] = letter
 
 
 def heuristic_1(words, board, state):
-    return word, tile
+    pass
 
 
 def heuristic_2(words, board, state):
@@ -63,22 +63,22 @@ def Generate_Beam_Search_Crossword(dictionary, heuristic, dimension=15):
                    "numIntersections": 0, "averageWordLength": 0}
 
     Possible_To_Place = True
-    while Possible_To_Place:
-        if heuristic == 1:
-            word_to_place, tiles_to_place = heuristic_1(
-                dictionary, result, Board_State)
-        elif heuristic == 2:
-            word_to_place, tiles_to_place = heuristic_2(
-                dictionary, result, Board_State)
-        else:
-            word_to_place, tiles_to_place = heuristic_3(
-                dictionary, result, Board_State)
+    # while Possible_To_Place:
+    #     if heuristic == 1:
+    #         word_to_place, tiles_to_place = heuristic_1(
+    #             dictionary, result, Board_State)
+    #     elif heuristic == 2:
+    #         word_to_place, tiles_to_place = heuristic_2(
+    #             dictionary, result, Board_State)
+    #     else:
+    #         word_to_place, tiles_to_place = heuristic_3(
+    #             dictionary, result, Board_State)
 
-        # place the word in those tiles
-            # update what we know about the current board (how many intersections, average word length, etc.)
-            # need to delete word from dictionary or mark it used
-        # if you iterate through all possible words and can't place:
-            #Possible_To_Place = False
+    # place the word in those tiles
+    # update what we know about the current board (how many intersections, average word length, etc.)
+    # need to delete word from dictionary or mark it used
+    # if you iterate through all possible words and can't place:
+    #Possible_To_Place = False
 
     return result
 
@@ -89,6 +89,15 @@ Beam_Search_Heuristic_2 = Generate_Beam_Search_Crossword(CornellWords, 2)
 Beam_Search_Heuristic_3 = Generate_Beam_Search_Crossword(CornellWords, 3)
 
 # output each of the generated crosswords
-Print_Matrix(Beam_Search_Heuristic_1)
-Print_Matrix(Beam_Search_Heuristic_2)
-Print_Matrix(Beam_Search_Heuristic_3)
+# Print_Matrix(Beam_Search_Heuristic_1)
+# Print_Matrix(Beam_Search_Heuristic_2)
+# Print_Matrix(Beam_Search_Heuristic_3)
+
+# testing for crossword function
+if __name__ == '__main__':
+    c = Crossword(15)
+    c.print_matrix()
+    c.place_word("hello", 1, 1, 0)
+    c.print_matrix()
+    c.place_word("world", 0, 5, 1)
+    c.print_matrix()
