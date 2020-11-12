@@ -19,62 +19,68 @@ class Crossword:
             print(row)
         return
 
+    # input a word, finds possible placements for that word
+
     # input the word to place, and the row and column location of the first letter
     # input the direction, 0 for horizontal, 1 for vertical
+    # also updates emptyspaces
+
     def place_word(self, word, row, col, direction):
         letters = list(word)
+        new_letters = 0
         if direction == 1:
             for i in range(len(letters)):
                 letter = letters[i]
                 if ((self.crossword[row + i][col]) != None and (self.crossword[row + i][col] != letter)):
                     raise ValueError
-                else:
+                elif self.crossword[row + i][col] == None:
+                    new_letters += 1
                     self.crossword[row + i][col] = letter
         else:
             for i in range(len(letters)):
                 letter = letters[i]
                 if (self.crossword[row][col + i] != None and self.crossword[row][col + i] != letter):
                     raise ValueError
-                else:
+                elif self.crossword[row + i][col] == None:
+                    new_letters += 1
                     self.crossword[row][col + i] = letter
+        self.emptyspaces = self.emptyspaces - new_letters
+        self.numwords += 1
+
+# TODO
 
 
-def heuristic_1(words, board, state):
-    pass
+def heuristic_1(words, board):
+    return "", (0, 0, 0)
+
+# TODO
 
 
-def heuristic_2(words, board, state):
-    pass
+def heuristic_2(words, board):
+    return "", (0, 0, 0)
+
+# TODO
 
 
-def heuristic_3(words, board, state):
-    pass
+def heuristic_3(words, board):
+    return "", (0, 0, 0)
 
 
 # needs to return a matrix that contains the generated crossword
 def Generate_Beam_Search_Crossword(dictionary, heuristic, dimension=15):
     # by default we use a 15 by 15 board
-
     # generate result board, currently empty matrix
-    result = [[None for i in range(dimension)] for j in range(dimension)]
-
-    # holds interesting information we keep updated
-    Board_State = {"numWords": 0,
-                   "numIntersections": 0, "averageWordLength": 0}
-
-    Possible_To_Place = True
-    # while Possible_To_Place:
-    #     if heuristic == 1:
-    #         word_to_place, tiles_to_place = heuristic_1(
-    #             dictionary, result, Board_State)
-    #     elif heuristic == 2:
-    #         word_to_place, tiles_to_place = heuristic_2(
-    #             dictionary, result, Board_State)
-    #     else:
-    #         word_to_place, tiles_to_place = heuristic_3(
-    #             dictionary, result, Board_State)
-
+    result = Crossword(dimension)
+    possible_to_place = True
+    while possible_to_place:
+        if heuristic == 1:
+            word_to_place, loc = heuristic_1(dictionary, result)
+        elif heuristic == 2:
+            word_to_place, loc = heuristic_2(dictionary, result)
+        else:
+            word_to_place, loc = heuristic_3(dictionary, result)
     # place the word in those tiles
+
     # update what we know about the current board (how many intersections, average word length, etc.)
     # need to delete word from dictionary or mark it used
     # if you iterate through all possible words and can't place:
