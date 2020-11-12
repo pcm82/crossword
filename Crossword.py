@@ -19,8 +19,6 @@ class Crossword:
             print(row)
         return
 
-    # input a word, finds possible placements for that word
-
     # input the word to place, and the row and column location of the first letter
     # input the direction, 0 for horizontal, 1 for vertical
     # also updates emptyspaces
@@ -46,6 +44,33 @@ class Crossword:
                     self.crossword[row][col + i] = letter
         self.emptyspaces = self.emptyspaces - new_letters
         self.numwords += 1
+        return
+
+    # TODO fix bugs
+    # input a word, finds possible placements for that word
+    def find_locs(self, word):
+        locations = []
+        n = len(word)
+        # if you orient in horizontal direction
+        print(self.dimension - n)
+        for i in range(self.dimension - n):
+            for j in range(self.dimension):
+                y = self
+                try:
+                    y.place_word(word, i, j, 0)
+                    locations.append((i, j, 0))
+                except:
+                    print("failed")
+                    pass
+        for k in range(self.dimension):
+            for l in range(self.dimension - n):
+                y = self
+                try:
+                    y.place_word(word, k, l, 1)
+                    locations.append((k, l, 1))
+                except:
+                    pass
+        return locations
 
 # TODO
 
@@ -71,7 +96,7 @@ def Generate_Beam_Search_Crossword(dictionary, heuristic, dimension=15):
     # by default we use a 15 by 15 board
     # generate result board, currently empty matrix
     result = Crossword(dimension)
-    possible_to_place = True
+    possible_to_place = False
     while possible_to_place:
         if heuristic == 1:
             word_to_place, loc = heuristic_1(dictionary, result)
@@ -107,3 +132,5 @@ if __name__ == '__main__':
     c.print_matrix()
     c.place_word("world", 0, 5, 1)
     c.print_matrix()
+    lst = c.find_locs("greetings")
+    print(lst)
