@@ -1,3 +1,6 @@
+# import libraries
+import copy
+
 # process the input data as a dictionary
 CornellWords = {}
 
@@ -39,36 +42,37 @@ class Crossword:
                 letter = letters[i]
                 if (self.crossword[row][col + i] != None and self.crossword[row][col + i] != letter):
                     raise ValueError
-                elif self.crossword[row + i][col] == None:
+                elif self.crossword[row][col + i] == None:
                     new_letters += 1
                     self.crossword[row][col + i] = letter
         self.emptyspaces = self.emptyspaces - new_letters
         self.numwords += 1
         return
 
-    # TODO fix bugs
     # input a word, finds possible placements for that word
     def find_locs(self, word):
         locations = []
         n = len(word)
         # if you orient in horizontal direction
         print(self.dimension - n)
-        for i in range(self.dimension - n):
-            for j in range(self.dimension):
-                y = self
+        print(n)
+        for i in range(self.dimension):
+            for j in range(self.dimension - n):
+                y = copy.deepcopy(self)
                 try:
                     y.place_word(word, i, j, 0)
                     locations.append((i, j, 0))
                 except:
-                    print("failed")
+                    print("failed horizontally")
                     pass
-        for k in range(self.dimension):
-            for l in range(self.dimension - n):
-                y = self
+        for k in range(self.dimension - n):
+            for l in range(self.dimension):
+                y = copy.deepcopy(self)
                 try:
                     y.place_word(word, k, l, 1)
                     locations.append((k, l, 1))
                 except:
+                    print("failed vertically")
                     pass
         return locations
 
@@ -126,11 +130,12 @@ Beam_Search_Heuristic_3 = Generate_Beam_Search_Crossword(CornellWords, 3)
 
 # testing for crossword function
 if __name__ == '__main__':
-    c = Crossword(15)
+    c = Crossword(10)
     c.print_matrix()
     c.place_word("hello", 1, 1, 0)
     c.print_matrix()
     c.place_word("world", 0, 5, 1)
     c.print_matrix()
-    lst = c.find_locs("greetings")
+    lst = c.find_locs("foooo")
+    c.print_matrix()
     print(lst)
