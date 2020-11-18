@@ -44,37 +44,38 @@ def compareInt(key1, interDict):
 # letters in common with the current Word list
 # Returns a sorted tuple list [(key, value), ...] with the words that intersect
 # with the most other words first
-# TODO
+
 
 def mostIntersectionsSort(d, currentWords):
     interDict = {}
-    print("CUR WORDS: ", currentWords)
     for key in d:
         count = 0
         for word in currentWords:
             count += countIntersections(key, word)
         interDict[key] = count
-    print("\n INTERDICT \n \n", interDict)
-    keys = sorted(list(d.keys()), key=lambda x: interDict[x], reverse = True) #makes keys = the list of d's keys, sorted in descending order
-    return keys
+    # makes keys = the list of d's keys, sorted in descending order
+    keys = sorted(list(d.keys()), key=lambda x: interDict[x], reverse=True)
+    array = []
+    for i in range(len(keys)):
+        key = keys[i]
+        array.append((key, d.get(key)))
+    return array
 
 
 if __name__ == '__main__':
-#make the dictionary
+    # make the dictionary
     d = makeDictionary()
 
-#sort the keys according to length
-    sortedD = shortestSort(d)
-    #print list
-    # print(sorted)
-    
-#count intersections between two words
-    # inter1= countIntersections("hello", "world")
-    # print("The number of intersections between hello and world is:")
-    # print(inter1)
-    inter2= countIntersections("hello", "cello") 
+# sort the keys according to length
+    print("SORTED KEYS BY LENGTH", shortestSort(d))
+
+# count intersections between two words
+    print("The number of intersections between hello and world is: ",
+          countIntersections("hello", "world"))
+    print("The number of intersections between hello and cello is:",
+          countIntersections("hello", "cello"))
+
+# sort keys by intersections
     currentWords = ["hello", "world", "cello"]
-    print("SORTED KEYS", mostIntersectionsSort(d, currentWords))
-    # print("The number of intersections between hello and cello is:")
-    # print(inter2)
-    
+    print("SORTED KEYS BY INTERSECTIONS",
+          mostIntersectionsSort(d, currentWords))
