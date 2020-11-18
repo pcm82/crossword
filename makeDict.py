@@ -55,21 +55,23 @@ def mostIntersectionsSort(d, currentWords):
             count += countIntersections(key, word)
         interDict[key] = count
     print("\n INTERDICT \n \n", interDict)
-    keys = sorted(list(d.keys()), key=lambda x: interDict[x], reverse = True)#(compareInt(x, interDict), x))  # BUG HERE
+    keys = sorted(list(d.keys()), key=lambda x: interDict[x], reverse = True) #makes keys = the list of d's keys, sorted in descending order
     return keys
 
 
 if __name__ == '__main__':
-    #make the dictionary
+#make the dictionary
     d = makeDictionary()
-    #sort the keys according to length
+
+#sort the keys according to length
     sortedD = shortestSort(d)
     #print list
     # print(sorted)
-    #count intersections between two words
-    inter1= countIntersections("hello", "world")
-    print("The number of intersections between hello and world is:")
-    print(inter1)
+    
+#count intersections between two words
+    # inter1= countIntersections("hello", "world")
+    # print("The number of intersections between hello and world is:")
+    # print(inter1)
     inter2= countIntersections("hello", "cello") 
     currentWords = ["hello", "world", "cello"]
     print("SORTED KEYS", mostIntersectionsSort(d, currentWords))
