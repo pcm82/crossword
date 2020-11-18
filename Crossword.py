@@ -1,5 +1,6 @@
 # import libraries
 import copy
+import random
 
 # process the input data as a dictionary
 CornellWords = {}
@@ -136,6 +137,9 @@ if __name__ == '__main__':
     c.print_matrix()
     c.place_word("world", 0, 5, 1)
     c.print_matrix()
-    lst = c.find_locs("foooo")
+    lst = c.find_locs("foobar")
     c.print_matrix()
     print(lst)
+    loc = lst[random.randint(0, len(lst) - 1)]
+    c.place_word("foobar", loc[0], loc[1], loc[2])
+    c.print_matrix()

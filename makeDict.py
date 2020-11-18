@@ -6,8 +6,8 @@ import pandas as pd
 
 def makeDictionary():
     data = pd.read_excel("Words,clues.xlsx")
-    words = data['Words']
-    clues = data['Clues']
+    words = data['Word']
+    clues = data['Clue']
     array = []
     for i in range(len(words)):
         array.append((words[i], clues[i]))
@@ -44,25 +44,33 @@ def compareInt(key1, interDict):
 # letters in common with the current Word list
 # Returns a sorted tuple list [(key, value), ...] with the words that intersect
 # with the most other words first
-
+# TODO
 
 def mostIntersectionsSort(d, currentWords):
     keys = list(d.keys())
     interDict = []
     for i in range(len(keys)):
-        count = 0
         key = keys[i]
         for word in currentWords:
             count = count + countIntersections(key, word)
-            print(count)
         interDict.append((key, count))
     interDict = dict(interDict)
-    print(len(keys))
     keys = keys.sort(key=lambda x: (compareInt(x, interDict), x))  # BUG HERE
     return keys
 
 
 if __name__ == '__main__':
+    #make the dictionary
     d = makeDictionary()
+    #sort the keys according to length
     sorted = shortestSort(d)
-    print(mostIntersectionsSort(d, ['CKB']))
+    #print list
+    print(sorted)
+    #count intersections between two words
+    inter1= countIntersections("hello", "world")
+    print("The number of intersections between hello and world is:")
+    print(inter1)
+    inter2= countIntersections("hello", "cello") 
+    print("The number of intersections between hello and cello is:")
+    print(inter2)
+    
