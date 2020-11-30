@@ -1,11 +1,10 @@
 # crossword
-Things to do (updated November 28):
+Things to do (updated November 29):
 
-Must: 
+TODO: 
 -Change our code to reflect the threshold problem
 -Come up with GUI or video of GUI
 -Work on final report
-
 
 
 Perhaps: 
