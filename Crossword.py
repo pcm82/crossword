@@ -66,7 +66,7 @@ class Crossword:
         return True
 
     def find_locs(self, word):
-        #TODO: find locs is placing words next to each other, where they should be going, for instance, dog and cat could be placed
+        #TODO 11.30.49: find locs is placing words next to each other, where they should be going, for instance, dog and cat could be placed
         #such that the board reads "dogcat", which we cannot allow. We need to only allow placements if the words have an explicit overlap, 
         #but otherwise we need to leave a space between all characters from different words
         """
@@ -111,14 +111,14 @@ class Crossword:
         return self.place_word(word, rand_location[0], rand_location[1], rand_location[2])
         
 
-def bruteForce(dictionary = makeDictionary(), threshold = .80, size = 5):
+def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     """
     :type: dictionary: dictionary, threshhold: float 0 <= threshold <= 1, size: integer 0 < size
     :input: a dictionary, threshold for how filled we would like to make a board of size "size"
     :rtype: a crossword string, and a boolean for whether it satisfies its threshold
     :return: the most filled crossword we can generate by searching the entire sample space
     """ 
-    #TODO: Currently, this function only checks for randomly trying to place each permutation once. 
+    #TODO 11.30.50: Currently, this function only checks for randomly trying to place each permutation once. 
     # We need to, for each permutation, try every possible configuration of placing words until we place them all down, or until we have exhausted all options
     #Also, need to figure out why the outputted crossword never uses the five letter words, and why it always outputs 0.48 with these results, which are related issues
     numWords = len(dictionary)
@@ -139,6 +139,16 @@ def bruteForce(dictionary = makeDictionary(), threshold = .80, size = 5):
         threshold_met = True
     return bestCrossword, threshold_met
 
+def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
+    """
+    :type: dictionary: dictionary, threshhold: float 0 <= threshold <= 1, size: integer 0 < size
+    :input: a dictionary, threshold for how filled we would like to make a board of size "size"
+    :rtype: a crossword string, and a boolean for whether it satisfies its threshold
+    :return: the most filled crossword we can generate by searching with beam search and our heuristic
+    """ 
+    #TODO 11.30.52: Write this heuristic function, probably after we finish the brute force method above
+    return 
+
 if __name__ == '__main__':
     #Testing basic crossword functionality
     c = Crossword(10) #initialize a 10 by 10 crossword
@@ -152,7 +162,7 @@ if __name__ == '__main__':
     #Testing brute force crossword creation
     testDict = {"hello": "", "hi": "", "dog": "", "cat": "", "place": "", "hoax": ""}#create a small dictionary for testing purposes
     print("Executing brute force: ")
-    bruteCrossword, meetsThreshold = bruteForce(testDict, .30, 5)
+    bruteCrossword, meetsThreshold = bruteForceCreator(testDict, .30, 5)
     print("\n\nBrute force crossword: \n\n", bruteCrossword.print_matrix())
     print("Meets threshold: ", meetsThreshold)
     print("Percent filled: ", bruteCrossword.percentFilled())
