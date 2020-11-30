@@ -1,15 +1,7 @@
-# import libraries
 import copy
 import random
+from makeDict import *
 
-# process the input data as a dictionary
-CornellWords = {}
-
-# ------------PROCESS TEXT FILE AS PYTHON DICTIONARY---------------
-# see makeDict
-
-
-# ------------CROSSWORD OBJECT--------------------------------------
 class Crossword:
     def __init__(self, dim):
         self.dimension = dim
@@ -17,30 +9,52 @@ class Crossword:
         self.numwords = 0
         self.crossword = [[None for i in range(dim)] for j in range(dim)]
 
-    def print_matrix(self):  # prints the matrix for a corresponding crossword
-        print("CROSSWORD: ")
-        for row in self.crossword:
-            print(row)
-        return
+    def print_matrix(self):
+        """
+        :type: 
+        :input: 
+        :rtype: string
+        :return: string representation of a matrix
+        """
+        matrix = self.crossword
+        s = [[str(e) for e in row] for row in matrix]
+        lens = [max(map(len, col)) for col in zip(*s)]
+        fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+        table = [fmt.format(*row) for row in s]
+        return ('\n'.join(table))
 
-    # input the word to place, and the row and column location of the first letter
-    # input the direction, 0 for horizontal, 1 for vertical
-    # also updates emptyspaces
+    def percentFilled(self):
+        """
+        :type: 
+        :input: 
+        :rtype: float
+        :return: percent of board tiles filled, between 0 and 1
+        """
+        denominator = self.dimension*self.dimension
+        numerator = 0
+        for row in self.crossword:
+            for entry in row:
+                if entry != None:
+                    numerator += 1
+        return float(numerator)/float(denominator)
 
     def place_word(self, word, row, col, direction):
-        letters = list(word)
+        """
+        :type: word: string, row: int, col: int, direction: int
+        :input: the word to place, the row to place it in, the column to place it in, the direction to place it in (1 means north-south, 0 means east-west)
+        :rtype: 
+        :return: 
+        """
         new_letters = 0
         if direction == 1:
-            for i in range(len(letters)):
-                letter = letters[i]
+            for i, letter in enumerate(word):
                 if ((self.crossword[row + i][col]) != None and (self.crossword[row + i][col] != letter)):
                     raise ValueError
                 elif self.crossword[row + i][col] == None:
                     new_letters += 1
                     self.crossword[row + i][col] = letter
         else:
-            for i in range(len(letters)):
-                letter = letters[i]
+            for i, letter in enumerate(word):
                 if (self.crossword[row][col + i] != None and self.crossword[row][col + i] != letter):
                     raise ValueError
                 elif self.crossword[row][col + i] == None:
@@ -50,13 +64,15 @@ class Crossword:
         self.numwords += 1
         return
 
-    # input a word, finds possible placements for that word
     def find_locs(self, word):
+        """
+        :type: string
+        :input: a word for which we will determine all the places it could go on the board
+        :rtype: list
+        :return: a list of all the tiles which we could place the word in 
+        """
         locations = []
         n = len(word)
-        # if you orient in horizontal direction
-        print(self.dimension - n)
-        print(n)
         for i in range(self.dimension):
             for j in range(self.dimension - n):
                 y = copy.deepcopy(self)
@@ -64,7 +80,7 @@ class Crossword:
                     y.place_word(word, i, j, 0)
                     locations.append((i, j, 0))
                 except:
-                    print("failed horizontally")
+                    # print("failed horizontally")
                     pass
         for k in range(self.dimension - n):
             for l in range(self.dimension):
@@ -73,73 +89,31 @@ class Crossword:
                     y.place_word(word, k, l, 1)
                     locations.append((k, l, 1))
                 except:
-                    print("failed vertically")
+                    # print("failed vertically")
                     pass
         return locations
 
-# TODO
 
+def main(dictionary = makeDictionary(), threshold = .80, size = 10):
+    """
+    :type: string
+    :input: a word for which we will determine all the places it could go on the board
+    :rtype: list
+    :return: a list of all the tiles which we could place the word in 
+    """
+    return
 
-def heuristic_1(words, board):
-    return "", (0, 0, 0)
-
-# TODO
-
-
-def heuristic_2(words, board):
-    return "", (0, 0, 0)
-
-# TODO
-
-
-def heuristic_3(words, board):
-    return "", (0, 0, 0)
-
-
-# needs to return a matrix that contains the generated crossword
-def Generate_Beam_Search_Crossword(dictionary, heuristic, dimension=15):
-    # by default we use a 15 by 15 board
-    # generate result board, currently empty matrix
-    result = Crossword(dimension)
-    possible_to_place = False
-    while possible_to_place:
-        if heuristic == 1:
-            word_to_place, loc = heuristic_1(dictionary, result)
-        elif heuristic == 2:
-            word_to_place, loc = heuristic_2(dictionary, result)
-        else:
-            word_to_place, loc = heuristic_3(dictionary, result)
-    # place the word in those tiles
-
-    # update what we know about the current board (how many intersections, average word length, etc.)
-    # need to delete word from dictionary or mark it used
-    # if you iterate through all possible words and can't place:
-    #Possible_To_Place = False
-
-    return result
-
-
-# create each variation of the crosswords
-Beam_Search_Heuristic_1 = Generate_Beam_Search_Crossword(CornellWords, 1)
-Beam_Search_Heuristic_2 = Generate_Beam_Search_Crossword(CornellWords, 2)
-Beam_Search_Heuristic_3 = Generate_Beam_Search_Crossword(CornellWords, 3)
-
-# output each of the generated crosswords
-# Print_Matrix(Beam_Search_Heuristic_1)
-# Print_Matrix(Beam_Search_Heuristic_2)
-# Print_Matrix(Beam_Search_Heuristic_3)
-
-# testing for crossword function
 if __name__ == '__main__':
-    c = Crossword(10)
-    c.print_matrix()
-    c.place_word("hello", 1, 1, 0)
-    c.print_matrix()
-    c.place_word("world", 0, 5, 1)
-    c.print_matrix()
-    lst = c.find_locs("foobar")
-    c.print_matrix()
-    print(lst)
-    loc = lst[random.randint(0, len(lst) - 1)]
-    c.place_word("foobar", loc[0], loc[1], loc[2])
-    c.print_matrix()
+    #Testing basic crossword functionality
+    c = Crossword(10) #initialize a 10 by 10 crossword
+    c.place_word("hello", 1, 1, 0) #place hello into row 1, col 1, east-west
+    c.place_word("world", 0, 5, 1) #place world into row 0, col 5, north-south
+    print("\nCrossword with hello and world: \n\n", c.print_matrix())
+    locs_foobar = c.find_locs("foobar") #the possible locations to place the word "foobar"
+    rand_loc_foobar = locs_foobar[random.randint(0, len(locs_foobar) - 1)] #choose a random position to place "foobar"
+    c.place_word("foobar", rand_loc_foobar[0], rand_loc_foobar[1], rand_loc_foobar[2])
+    print("\nCrossword after adding foobar: \n\n", c.print_matrix(), "\n")
+    print("Percent of tiles filled: ", c.percentFilled(), "\n")
+    
+    #Execute real code to see if we can solve the threshold problem
+    print(main())
