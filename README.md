@@ -3,7 +3,7 @@ Things to do (updated November 29):
 
 TODO:
 -Fix TODO 11.30.49 and TODO 11.30.50 in Crossword.py(just what I named them)
--TODO 11.30.52: Write heuristic function code
+-TODO 11.30.52: Write heuristic function code 
 -Change our code to reflect the threshold problem
 -Come up with GUI or video of GUI
 -Work on final report
