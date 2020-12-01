@@ -9,6 +9,7 @@ class Crossword:
         self.emptyspaces = dim * dim
         self.numwords = 0
         self.crossword = [[None for i in range(dim)] for j in range(dim)]
+        self.words = []
 
     def print_matrix(self):
         """
@@ -55,13 +56,13 @@ class Crossword:
         dim = self.dimension
         new_letters = 0
 
-        if direction == 0:
+        if direction == 0: # PLACES A WORD VERTICALLY
             # out of bounds, consec with prev word, consec with following word
-            if row + len(word) > self.dimension: # out of bounds
+            if col + len(word) > self.dimension: # out of bounds
                 return False 
             if self.cw(max(0,row-1),col) != None: # consecutive with previous word
                 return False 
-            if self.cw(min(dim, row+1),col) != None: # consecutive with following word
+            if self.cw(min(dim-1, row+len(word)),col) != None: # consecutive with following word
                 return False 
             
             # currently only allows for one intersection 
@@ -75,7 +76,7 @@ class Crossword:
                         return False 
                     intersect = True
                     intersect_ind_r = i 
-                if i != intersect_ind_r and (self.cw(row+i, max(0,col-1)) != None or self.cw(row+i,min(dim,col+1)) != None):
+                if i != intersect_ind_r and (self.cw(row+i, max(0,col-1)) != None or self.cw(row+i,min(dim-1,col+1)) != None):
                     return False  
             
             # need two loops for safety or else it places half finished words
@@ -83,13 +84,13 @@ class Crossword:
                 new_letters += 1
                 self.crossword[row + i][col] = letter
 
-        else:
+        else: # PLACES A WORD HORIZONTALLY
 
-            if col + len(word) > self.dimension: # out of bounds
+            if row + len(word) > dim: # out of bounds
                 return False 
             if self.cw(row, max(0, col-1)) != None: # consecutive with previous word
                 return False 
-            if self.cw(row, min(self.dimension, col+1)) != None: # consecutive with following word
+            if self.cw(row, min(dim-1, col+len(word))) != None: # consecutive with following word
                 return False 
 
             # currently only allows for one intersection 
@@ -103,7 +104,7 @@ class Crossword:
                         return False 
                     intersect = True 
                     intersect_ind_c = i 
-                if i != intersect_ind_c and (self.cw(max(0,row-1),col+i) != None or self.cw(min(dim,row+1),col+i) != None):
+                if i != intersect_ind_c and (self.cw(max(0,row-1),col+i) != None or self.cw(min(dim-1,row+1),col+i) != None):
                     return False 
             
             for i,letter in enumerate(word):
@@ -131,7 +132,7 @@ class Crossword:
                     y.place_word(word, i, j, 0)
                     locations.append((i, j, 0))
                 except:
-                    #print("failed horizontally")
+                    #print("failed vertically")
                     pass
         for k in range(self.dimension):
             for l in range(self.dimension):
@@ -140,7 +141,7 @@ class Crossword:
                     y.place_word(word, k, l, 1)
                     locations.append((k, l, 1))
                 except:
-                    #print("failed vertically")
+                    #print("failed horizontally")
                     pass
         return locations
 
@@ -151,6 +152,10 @@ class Crossword:
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
+        # NOTE: this is NOT optimal. consider the word PLACE. on an empty board it should be placed
+        # at the first row or first column. but it can be randomly placed in the middle of the cword
+        # which is clearly unideal. but that's a problem for another time. 
+
         locs= self.find_locs(word)
         # print(word, locs)
         if len(locs) < 1:
@@ -181,10 +186,16 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
         #print(wordList)
         crossword = Crossword(size)
         for word in wordList:
+            before = crossword.numwords
             crossword.place_word_randomly(word)
-            #print("word was ", word)
+            after = crossword.numwords
+            if before != after: # tracks words in the order they were added
+                crossword.words.append(word)
         if crossword.percentFilled() > bestFill:
-            #print("new percent is", crossword.percentFilled())
+            print("new percent is", crossword.percentFilled())
+            print("the words were checked in the order", wordList)
+            print("the words were placed in the order", crossword.words)
+            print(crossword.print_matrix())
             #print("The word list leading to the best order was", wordList)
             bestCrossword = crossword
             bestFill = crossword.percentFilled()
