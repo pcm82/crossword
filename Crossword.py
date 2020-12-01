@@ -39,6 +39,12 @@ class Crossword:
                     numerator += 1
         return float(numerator)/float(denominator)
 
+    def cw(self,row,col):
+        """
+        returns the element in this row and column of the crossword
+        """
+        return self.crossword[row][col]
+
     def place_word(self, word, row, col, direction):
         """
         :type: word: string, row: int, col: int, direction: int
@@ -46,29 +52,69 @@ class Crossword:
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
+        dim = self.dimension
         new_letters = 0
-        if direction == 1:
+
+        if direction == 0:
+            # out of bounds, consec with prev word, consec with following word
+            if row + len(word) > self.dimension: # out of bounds
+                return False 
+            if self.cw(max(0,row-1),col) != None: # consecutive with previous word
+                return False 
+            if self.cw(min(dim, row+1),col) != None: # consecutive with following word
+                return False 
+            
+            # currently only allows for one intersection 
+            intersect = False
+            intersect_ind_r = -1
             for i, letter in enumerate(word):
-                if ((self.crossword[row + i][col]) != None and (self.crossword[row + i][col] != letter)):
-                    return False
-                elif self.crossword[row + i][col] == None:
-                    new_letters += 1
-                    self.crossword[row + i][col] = letter
+                if not (self.cw(row+i,col) == letter or self.cw(row+i,col) == None):
+                    return False 
+                if self.cw(row+i,col) == letter:
+                    if intersect: 
+                        return False 
+                    intersect = True
+                    intersect_ind_r = i 
+                if i != intersect_ind_r and (self.cw(row+i, max(0,col-1)) != None or self.cw(row+i,min(dim,col+1)) != None):
+                    return False  
+            
+            # need two loops for safety or else it places half finished words
+            for i,letter in enumerate(word): 
+                new_letters += 1
+                self.crossword[row + i][col] = letter
+
         else:
+
+            if col + len(word) > self.dimension: # out of bounds
+                return False 
+            if self.cw(row, max(0, col-1)) != None: # consecutive with previous word
+                return False 
+            if self.cw(row, min(self.dimension, col+1)) != None: # consecutive with following word
+                return False 
+
+            # currently only allows for one intersection 
+            intersect = False
+            intersect_ind_c = -1
             for i, letter in enumerate(word):
-                if (self.crossword[row][col + i] != None and self.crossword[row][col + i] != letter):
-                    return False
-                elif self.crossword[row][col + i] == None:
-                    new_letters += 1
-                    self.crossword[row][col + i] = letter
+                if not (self.cw(row,col+i) == letter or self.cw(row, col+i) == None):
+                    return False 
+                if self.cw(row,col+i) == letter:
+                    if intersect: 
+                        return False 
+                    intersect = True 
+                    intersect_ind_c = i 
+                if i != intersect_ind_c and (self.cw(max(0,row-1),col+i) != None or self.cw(min(dim,row+1),col+i) != None):
+                    return False 
+            
+            for i,letter in enumerate(word):
+                new_letters += 1
+                self.crossword[row][col+i] = letter 
+        
         self.emptyspaces = self.emptyspaces - new_letters
         self.numwords += 1
         return True
 
-    def find_locs(self, word):
-        #TODO 11.30.49: find locs is placing words next to each other, where they should be going, for instance, dog and cat could be placed
-        #such that the board reads "dogcat", which we cannot allow. We need to only allow placements if the words have an explicit overlap, 
-        #but otherwise we need to leave a space between all characters from different words
+    def find_locs(self, word): 
         """
         :type: string
         :input: a word for which we will determine all the places it could go on the board
@@ -78,22 +124,23 @@ class Crossword:
         locations = []
         n = len(word)
         for i in range(self.dimension):
-            for j in range(self.dimension - n):
+            for j in range(self.dimension):
                 y = copy.deepcopy(self)
+                appended = False 
                 try:
                     y.place_word(word, i, j, 0)
                     locations.append((i, j, 0))
                 except:
-                    # print("failed horizontally")
+                    #print("failed horizontally")
                     pass
-        for k in range(self.dimension - n):
+        for k in range(self.dimension):
             for l in range(self.dimension):
                 y = copy.deepcopy(self)
                 try:
                     y.place_word(word, k, l, 1)
                     locations.append((k, l, 1))
                 except:
-                    # print("failed vertically")
+                    #print("failed vertically")
                     pass
         return locations
 
@@ -105,6 +152,7 @@ class Crossword:
         :return: True if placed successfuly, False otherwise
         """
         locs= self.find_locs(word)
+        # print(word, locs)
         if len(locs) < 1:
             return False
         rand_location = locs[random.randint(0, len(locs) - 1)] 
@@ -118,25 +166,33 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     :rtype: a crossword string, and a boolean for whether it satisfies its threshold
     :return: the most filled crossword we can generate by searching the entire sample space
     """ 
-    #TODO 11.30.50: Currently, this function only checks for randomly trying to place each permutation once. 
+    # TODO 11.30.50: Currently, this function only checks for randomly trying to place each permutation once. 
     # We need to, for each permutation, try every possible configuration of placing words until we place them all down, or until we have exhausted all options
-    #Also, need to figure out why the outputted crossword never uses the five letter words, and why it always outputs 0.48 with these results, which are related issues
+    
     numWords = len(dictionary)
     smallestWordLength = len(shortestSort(dictionary)[0][0])
     numTiles = size*size
     maxWords = min(numWords, int(numTiles / smallestWordLength))
     bestCrossword = []
     bestFill = 0
+    
     for wordList in itertools.permutations(dictionary.keys(), maxWords):
+        #print("*************************************************************************************")
+        #print(wordList)
         crossword = Crossword(size)
         for word in wordList:
             crossword.place_word_randomly(word)
+            #print("word was ", word)
         if crossword.percentFilled() > bestFill:
+            #print("new percent is", crossword.percentFilled())
+            #print("The word list leading to the best order was", wordList)
             bestCrossword = crossword
             bestFill = crossword.percentFilled()
+    
     threshold_met = False
     if bestFill >= threshold:
         threshold_met = True
+
     return bestCrossword, threshold_met
 
 def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
@@ -151,16 +207,16 @@ def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
 
 if __name__ == '__main__':
     #Testing basic crossword functionality
-    c = Crossword(10) #initialize a 10 by 10 crossword
-    c.place_word("hello", 1, 1, 0) #place hello into row 1, col 1, east-west
-    c.place_word("world", 0, 5, 1) #place world into row 0, col 5, north-south
-    print("\nCrossword with hello and world: \n\n", c.print_matrix())
-    c.place_word_randomly("foobar")
-    print("\nCrossword after adding foobar: \n\n", c.print_matrix(), "\n")
-    print("Percent of tiles filled: ", c.percentFilled(), "\n")
+    # c = Crossword(10) #initialize a 10 by 10 crossword
+    # c.place_word("hello", 1, 1, 0) #place hello into row 1, col 1, east-west
+    # c.place_word("world", 0, 5, 1) #place world into row 0, col 5, north-south
+    # print("\nCrossword with hello and world: \n\n", c.print_matrix())
+    # c.place_word_randomly("foobar")
+    # print("\nCrossword after adding foobar: \n\n", c.print_matrix(), "\n")
+    # print("Percent of tiles filled: ", c.percentFilled(), "\n")
     
     #Testing brute force crossword creation
-    testDict = {"hello": "", "hi": "", "dog": "", "cat": "", "place": "", "hoax": ""}#create a small dictionary for testing purposes
+    testDict = {"hello": "", "hi": "", "dog": "", "cat": "", "place": "", "hoax": ""} #create a small dictionary for testing purposes
     print("Executing brute force: ")
     bruteCrossword, meetsThreshold = bruteForceCreator(testDict, .30, 5)
     print("\n\nBrute force crossword: \n\n", bruteCrossword.print_matrix())
