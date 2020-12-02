@@ -53,16 +53,26 @@ class Crossword:
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
+        # TODO there is a bug here, if you try to make this matrix: 
+        # a    x      a
+        # b    None   c
+        # a    None   a
+        # it fails to do so. I know that this causes an intersection issue 
+        # (which we should talk about) and should fail, but it gives an out of 
+        # bounds error before it gets there, so something is up
         dim = self.dimension
         new_letters = 0
 
         if direction == 0: # PLACES A WORD VERTICALLY
             # out of bounds, consec with prev word, consec with following word
             if row + len(word) > self.dimension: # out of bounds
+                print("Out of bounds")
                 return False 
             if self.cw(max(0,row-1),col) != None: # consecutive with previous word
+                print("consecutive with previous word")
                 return False 
             if self.cw(min(dim-1, row+len(word)),col) != None: # consecutive with following word
+                print("consecutive with following word")
                 return False 
             
             # currently only allows for one intersection 
@@ -85,11 +95,14 @@ class Crossword:
                 self.crossword[row + i][col] = letter
         else: # PLACES A WORD HORIZONTALLY
 
-            if col + len(word) > dim: # out of bounds
+            if col + len(word) > dim: # out of bounds TODO Error here, run the example on lines 283 - 288
+                print("Out of bounds")
                 return False 
             if self.cw(row, max(0, col-1)) != None: # consecutive with previous word
+                print("consecutive with previous word")
                 return False 
             if self.cw(row, min(dim-1, col+len(word))) != None: # consecutive with following word
+                print("consecutive with following word")
                 return False 
 
             # currently only allows for one intersection 
@@ -97,13 +110,16 @@ class Crossword:
             intersect_ind_c = -1
             for i, letter in enumerate(word):
                 if not (self.cw(row,col+i) == letter or self.cw(row, col+i) == None):
+                    print("problem at point A")
                     return False 
                 if self.cw(row,col+i) == letter:
                     if intersect: 
+                        print("problem at point B")
                         return False 
                     intersect = True 
                     intersect_ind_c = i 
                 if i != intersect_ind_c and (self.cw(max(0,row-1),col+i) != None or self.cw(min(dim-1,row+1),col+i) != None):
+                    print("problem at point C")
                     return False 
             
             for i,letter in enumerate(word):
@@ -172,22 +188,19 @@ def recursive_arrange(crossword, wordlist):
     :rtype: returns a crossword, a remaining word list, and an efficiency
     :return: the crossword with the first word in the word list placed
     """
-    crossword.print_matrix()
     best_fill= 0
     best_cross= crossword
-    print(wordlist)
     if len(wordlist) < 1:
         return best_cross
     else: 
         word= wordlist.pop(0)
-        print(word)
         locs= crossword.find_locs(word)
         for i in range(len(locs)):
             location = locs[i]
-            print(location)
             y = copy.deepcopy(crossword)
-            b= y.place_word(word, location[0], location[1], location[2])
+            y.place_word(word, location[0], location[1], location[2])
             cross= recursive_arrange(y, copy.deepcopy(wordlist))
+            print("\n\nCrossword:\n\n", cross.print_matrix())
             filled= cross.percentFilled()
             if filled > best_fill: 
                 best_fill = filled
@@ -209,10 +222,9 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     crossword = Crossword(size)
     smallestWordLength = len(shortestSort(dictionary)[0][0])
     numTiles = size*size
-    maxWords = min(numWords, int(numTiles / smallestWordLength))
+    maxWords = numWords #min(numWords, int(numTiles / smallestWordLength))
     best_cross = crossword
     bestFill = 0
-    
     for wordList in itertools.permutations(dictionary.keys(), maxWords):
         #print("*************************************************************************************")
         #print(wordList)
@@ -275,11 +287,18 @@ if __name__ == '__main__':
     #     y= copy.deepcopy(c)
     #     y.place_word("world", loc[0], loc[1], loc[2])
     #     print("\nCrossword with hello world: \n", y.print_matrix())
+    c= Crossword(3)
+    c.place_word("aba", 0,0,0)
+    c.place_word("aca", 0,2,0)
+    print("\nCrossword: \n", c.print_matrix())
+    c.place_word("axa", 0,0,1)
+    print("\nCrossword: \n", c.print_matrix())
 
 
     #print("\nCrossword with hello and world: \n\n", c.print_matrix())
     #c.place_word_randomly("foobar")
     #print("\nCrossword after adding foobar: \n\n", c.print_matrix(), "\n")
+
     # # test percentFilled function
     # c = Crossword(5)
     # c.place_word("hello", 0,1,0)
@@ -296,8 +315,11 @@ if __name__ == '__main__':
     #print("Meets threshold: ", meetsThreshold)
     #print("Percent filled: ", bruteCrossword.percentFilled())
 
-    # Test recursive_arrange 
-    c = Crossword(5) #initialize a 5 by 5 crossword
-    testWords= ["hello", "hi", "dog", "home", "cat", "place", "hoax"]
-    cross= recursive_arrange(c, testWords)
-    print("\n\nRecursive crossword:\n\n", cross.print_matrix())
+    # # Test recursive_arrange 
+    # c = Crossword(3) #initialize a 5 by 5 crossword
+    # testWords= ["aoa", "aba", "aca", "ama"]
+    # cross= recursive_arrange(c, testWords)
+    # print("\n\nRecursive crossword:\n\n", cross.print_matrix())
+
+    #Test BruteForceCreate
+    
