@@ -6,7 +6,6 @@ from makeDict import *
 class Crossword:
     def __init__(self, dim):
         self.dimension = dim
-        self.emptyspaces = dim * dim
         self.numwords = 0
         self.crossword = [[None for i in range(dim)] for j in range(dim)]
         self.words = []
@@ -25,6 +24,20 @@ class Crossword:
         table = [fmt.format(*row) for row in s]
         return ('\n'.join(table))
 
+    def num_filled(self):
+        """
+        :type: crossword
+        :input: crossword of interest
+        :rtype: int
+        :return: number of board tiles filled
+        """
+        filled= 0
+        for row in self.crossword:
+            for entry in row:
+                if entry != None:
+                    filled += 1
+        return filled
+
     def percentFilled(self):
         """
         :type: 
@@ -33,12 +46,21 @@ class Crossword:
         :return: percent of board tiles filled, between 0 and 1
         """
         denominator = self.dimension*self.dimension
-        numerator = 0
-        for row in self.crossword:
-            for entry in row:
-                if entry != None:
-                    numerator += 1
+        numerator = self.num_filled()
         return float(numerator)/float(denominator)
+
+    def num_intersect(self):
+        """
+        :type: crossword
+        :input: input any crossword to find out how many intersections exist
+        :rtype: int
+        :return: the number of intersections between words in the crossword
+        """
+        filled= self.num_filled()
+        word_len= 0
+        for word in self.words:
+            word_len = word_len + len(word)
+        return (word_len - filled)
 
     def cw(self,row,col):
         """
@@ -68,6 +90,7 @@ class Crossword:
                 for i, char in enumerate(word):
                     self.crossword[row+i][col] = char
                 self.numwords += 1
+            self.words.append(word)
             return True
 
         if vertical == False and col+n <= dim:
@@ -83,6 +106,7 @@ class Crossword:
                 for i, char in enumerate(word):
                     self.crossword[row][col+i] = char
                 self.numwords += 1
+            self.words.append(word)
             return True
         return False
 
@@ -195,12 +219,24 @@ if __name__ == '__main__':
     # print("\nCrossword: \n", c.print_matrix())
     # c.place_word("axa", 0,0,vertical = False, editCrossword=True)
     # print("\nCrossword: \n", c.print_matrix())
+    # c2= Crossword(5)
+    # c2.place_word("hello", 0,0,0)
+    # c2.place_word("hoard", 0,0,1)
+    # c2.place_word("llama", 0,3,1)
+    # c2.place_word("llama", 0,2,1) #should fail
+    # print("\nCrossword: \n", c2.print_matrix())
 
     """
     test: find_locs and place_word_randomly
     """
-    # d = Crossword(5)
+    # d = Crossword(6)
     # print("locations of hello", d.find_locs("hello"))
+    # for loc in d.find_locs("hello"):
+    #     y= copy.deepcopy(d)
+    #     y.place_word("hello", loc[0], loc[1], loc[2])
+    #     print("\nCrossword with loc \n", loc)
+    #     print("\n", y.print_matrix())
+    
     # d.place_word_randomly_unoptimal("hello")
     # print(d.print_matrix())
     # print("locations of hoard: ", d.find_locs("hoard"))
@@ -224,3 +260,15 @@ if __name__ == '__main__':
     # testWords= ["aoa", "aba", "aca", "ama"]
     # cross= recursive_arrange(c, testWords)
     # print("\n\nRecursive crossword:\n\n", cross.print_matrix())
+
+    """
+    test: num_intersect
+    """
+    e= Crossword(5)
+    e.place_word("hello", 0,0,0)
+    e.place_word("hoard", 0,0,1)
+    e.place_word("llama", 0,2,1)
+    e.place_word("i", 3, 4, 0)
+    print("\nCrossword: \n", e.print_matrix())
+    print("words: ", e.words)
+    print("Number of Intersections: \n", e.num_intersect())
