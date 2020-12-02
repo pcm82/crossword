@@ -241,12 +241,12 @@ if __name__ == '__main__':
     #     y= copy.deepcopy(c)
     #     y.place_word("world", loc[0], loc[1], loc[2])
     #     print("\nCrossword with hello world: \n", y.print_matrix())
-    # c= Crossword(3)
-    # c.place_word("aba", 0,0,0)
-    # c.place_word("aca", 0,2,0)
-    # print("\nCrossword: \n", c.print_matrix())
-    # c.place_word("axa", 0,0,1)
-    # print("\nCrossword: \n", c.print_matrix())
+    c= Crossword(3)
+    c.place_word("aba", 0,0,vertical = True)
+    c.place_word("aca", 0,2,vertical = True)
+    print("\nCrossword: \n", c.print_matrix())
+    c.place_word("axa", 0,0,vertical = False)
+    print("\nCrossword: \n", c.print_matrix())
 
 
     #print("\nCrossword with hello and world: \n\n", c.print_matrix())
@@ -276,12 +276,3 @@ if __name__ == '__main__':
     # print("\n\nRecursive crossword:\n\n", cross.print_matrix())
 
     #Test BruteForceCreate
-    
-    #Test alternate place function:
-    d= Crossword(3)
-    print("placed successfully: ", d.place_word_alternate("aba", 0,0,True))
-    print("placed successfully: ", d.place_word_alternate("aca", 0,2,True))
-    print("\nCrossword: \n", d.print_matrix())
-    print("placed successfully: ", d.place_word_alternate("axa", 0,0,False))
-    print("\nCrossword: \n", d.print_matrix())
-
