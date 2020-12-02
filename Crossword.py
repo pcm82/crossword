@@ -46,7 +46,7 @@ class Crossword:
         """
         return self.crossword[row][col]
 
-    def place_word(self, word, row, col, vertical):
+    def place_word(self, word, row, col, vertical, editCrossword = True):
         """
         :type: word: string, row: int, col: int, vertical: bool
         :input: the word to place, the row to place it in, the column to place it in, whether to place it vertically or not
@@ -62,11 +62,12 @@ class Crossword:
                 return False
             for i, char in enumerate(word):
                 if self.crossword[row+i][col] != char:
-                    if (col + 1 < dim and self.crossword[row+i][col+1] != None) or (col - 1 >= 0 and self.crossword[row+i][col-1] != None):
+                    if (col + 1 < dim and self.crossword[row+i][col+1] != None) or (col - 1 >= 0 and self.crossword[row+i][col-1] != None) or self.crossword[row+i][col] != None:
                         return False
-            for i, char in enumerate(word):
-                self.crossword[row+i][col] = char
-            self.numwords += 1
+            if editCrossword:
+                for i, char in enumerate(word):
+                    self.crossword[row+i][col] = char
+                self.numwords += 1
             return True
 
         if vertical == False and col+n <= dim:
@@ -76,11 +77,12 @@ class Crossword:
                 return False
             for i, char in enumerate(word):
                 if self.crossword[row][col+i] != char:
-                    if (row + 1 <= dim and self.crossword[row+1][col+i] != None) or (row - 1 >= 0 and self.crossword[row-1][col+i] != None):
+                    if (row + 1 < dim and self.crossword[row+1][col+i] != None) or (row - 1 >= 0 and self.crossword[row-1][col+i] != None) or self.crossword[row][col+1] != None:
                         return False
-            for i, char in enumerate(word):
-                self.crossword[row][col+i] = char
-            self.numwords += 1
+            if editCrossword:
+                for i, char in enumerate(word):
+                    self.crossword[row][col+i] = char
+                self.numwords += 1
             return True
         return False
 
@@ -95,44 +97,28 @@ class Crossword:
         n = len(word)
         for i in range(self.dimension):
             for j in range(self.dimension):
-                y = copy.deepcopy(self)
-                appended = False 
-                try:
-                    success = y.place_word(word, i, j, 0)
-                    if success:
-                        locations.append((i, j, 0))
-                except:
-                    #print("failed vertically")
-                    pass
+                if self.place_word(word, i, j, vertical = True, editCrossword = False):
+                        locations.append((i, j, True))
         for k in range(self.dimension):
             for l in range(self.dimension):
-                y = copy.deepcopy(self)
-                try:
-                    success = y.place_word(word, k, l, 1)
-                    if success:
-                        locations.append((k, l, 1))
-                except:
-                    #print("failed horizontally")
-                    pass
+                if self.place_word(word, k, l, vertical = False, editCrossword = False):
+                    locations.append((k, l, False))
         return locations
 
-    def place_word_randomly(self, word):
+    def place_word_randomly_unoptimal(self, word):
         """
         :type: word: string
         :input: word to randomly place on the crossword
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
-        # NOTE: this is NOT optimal. consider the word PLACE. on an empty board it should be placed
-        # at the first row or first column. but it can be randomly placed in the middle of the cword
-        # which is clearly unideal. but that's a problem for another time. 
 
         locs= self.find_locs(word)
         # print(word, locs)
         if len(locs) < 1:
             return False
         rand_location = locs[random.randint(0, len(locs) - 1)] 
-        return self.place_word(word, rand_location[0], rand_location[1], rand_location[2])
+        return self.place_word(word, rand_location[0], rand_location[1], rand_location[2], True)
         
 def recursive_arrange(crossword, wordlist):
     """
@@ -149,20 +135,16 @@ def recursive_arrange(crossword, wordlist):
     else: 
         word= wordlist.pop(0)
         locs= crossword.find_locs(word)
-        for i in range(len(locs)):
-            location = locs[i]
+        for location in locs:
             y = copy.deepcopy(crossword)
-            y.place_word(word, location[0], location[1], location[2])
+            y.place_word(word, location[0], location[1], location[2], True)
             cross= recursive_arrange(y, copy.deepcopy(wordlist))
-            print("\n\nCrossword:\n\n", cross.print_matrix())
+            # print("\n\nCrossword:\n\n", cross.print_matrix())
             filled= cross.percentFilled()
             if filled > best_fill: 
                 best_fill = filled
                 best_cross= cross
         return best_cross
-          
-    
-
 
 def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     """
@@ -174,34 +156,15 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     
     numWords = len(dictionary)
     crossword = Crossword(size)
-    smallestWordLength = len(shortestSort(dictionary)[0][0])
-    numTiles = size*size
     maxWords = numWords #min(numWords, int(numTiles / smallestWordLength))
     best_cross = crossword
     bestFill = 0
     for wordList in itertools.permutations(dictionary.keys(), maxWords):
-        #print("*************************************************************************************")
-        #print(wordList)
-        # for word in wordList:
-        #     before = crossword.numwords
-        #     crossword.place_word_randomly(word)
-        #     after = crossword.numwords
-        #     if before != after: # tracks words in the order they were added
-        #         crossword.words.append(word)
-        # if crossword.percentFilled() > bestFill:
-        #     print("new percent is", crossword.percentFilled())
-        #     print("the words were checked in the order", wordList)
-        #     print("the words were placed in the order", crossword.words)
-        #     print(crossword.print_matrix())
-        #     #print("The word list leading to the best order was", wordList)
-        #     bestCrossword = crossword
-        #     bestFill = crossword.percentFilled()
-        cross= recursive_arrange(crossword, wordList)
+        cross= recursive_arrange(crossword, list(wordList))
         filled= cross.percentFilled()
         if filled > bestFill:
             best_cross = cross
             bestFill = filled
-        # can also add a break point here if we only want to hit the threshold
     if bestFill >= threshold:
         threshold_met = True
     else:
@@ -219,60 +182,45 @@ def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5):
     return 
 
 if __name__ == '__main__':
-    # #Testing basic crossword functionality
-    # c = Crossword(10) #initialize a 10 by 10 crossword
-    # c.print_matrix()
-    # c.place_word("hello", 1, 1, 0) #place hello into row 1, col 1, east-west
-    # c.place_word("world", 0, 5, 1) #place world into row 0, col 5, north-south
-    # print("\nCrossword with hello and world: \n\n", c.print_matrix())
 
-    
-    ##test find_locs
-    # c = Crossword(5) #initialize a 5 by 5 crossword
-    #locations= c.find_locs("hello")
-    #print("possible places to put hello are:")
-    #print(locations)
-    # c.place_word("hello",0,1,0)
-    # locations= c.find_locs("world")
-    # print("Possible places to put world are")
-    # print(locations)
-    # print("\nCrossword with hello: \n", c.print_matrix())
-    # for loc in locations:
-    #     y= copy.deepcopy(c)
-    #     y.place_word("world", loc[0], loc[1], loc[2])
-    #     print("\nCrossword with hello world: \n", y.print_matrix())
-    c= Crossword(3)
-    c.place_word("aba", 0,0,vertical = True)
-    c.place_word("aca", 0,2,vertical = True)
-    print("\nCrossword: \n", c.print_matrix())
-    c.place_word("axa", 0,0,vertical = False)
-    print("\nCrossword: \n", c.print_matrix())
-
-
-    #print("\nCrossword with hello and world: \n\n", c.print_matrix())
-    #c.place_word_randomly("foobar")
-    #print("\nCrossword after adding foobar: \n\n", c.print_matrix(), "\n")
-
-    # # test percentFilled function
-    # c = Crossword(5)
-    # c.place_word("hello", 0,1,0)
-    # print("Percent of tiles filled: ", c.percentFilled(), "\n")
-    # c.place_word("world", 4, 0, 1)
-    # print("Percent of tiles filled: ", c.percentFilled(), "\n")
-    # print("\nCrossword with hello and world: \n\n", c.print_matrix())
-
-    #Testing brute force crossword creation
     testDict = {"hello": "", "hi": "", "dog": "", "cat": "", "place": "", "hoax": ""} #create a small dictionary for testing purposes
-    #print("Executing brute force: ")
-    #bruteCrossword, meetsThreshold = bruteForceCreator(testDict, .30, 5)
-    #print("\n\nBrute force crossword: \n\n", bruteCrossword.print_matrix())
-    #print("Meets threshold: ", meetsThreshold)
-    #print("Percent filled: ", bruteCrossword.percentFilled())
+    testDict2 = {"hemp": "", "hoax": "", "bo": "", "ba": ""} #crafted to output with overlaps
 
-    # # Test recursive_arrange 
+    """
+    test: basic placement
+    """
+    # c= Crossword(3)
+    # c.place_word("aba", 0,0,vertical = True, editCrossword = True)
+    # c.place_word("aca", 0,2,vertical = True, editCrossword = True)
+    # print("\nCrossword: \n", c.print_matrix())
+    # c.place_word("axa", 0,0,vertical = False, editCrossword=True)
+    # print("\nCrossword: \n", c.print_matrix())
+
+    """
+    test: find_locs and place_word_randomly
+    """
+    # d = Crossword(5)
+    # print("locations of hello", d.find_locs("hello"))
+    # d.place_word_randomly_unoptimal("hello")
+    # print(d.print_matrix())
+    # print("locations of hoard: ", d.find_locs("hoard"))
+    # d.place_word_randomly_unoptimal("hoard")
+    # print(d.print_matrix())
+    
+    """
+    test: bruceForce crossword creation-- this test demonstrates how the brute force creation creates things with overlap to demonstrate our find_locs and place word functionality
+    I recommend testing with 4 or 5 words and dimension of 4 for quick output. It would be good to know whether the runtime suffers more from dimension or word count
+    """
+    # print("Executing brute force: ")
+    # bruteCrossword, meetsThreshold = bruteForceCreator(testDict2, .625, 4)
+    # print("\n\nBrute force crossword: \n\n", bruteCrossword.print_matrix())
+    # print("Meets threshold: ", meetsThreshold)
+    # print("Percent filled: ", bruteCrossword.percentFilled())
+
+    """
+    test: recursive_arrange
+    """
     # c = Crossword(3) #initialize a 5 by 5 crossword
     # testWords= ["aoa", "aba", "aca", "ama"]
     # cross= recursive_arrange(c, testWords)
     # print("\n\nRecursive crossword:\n\n", cross.print_matrix())
-
-    #Test BruteForceCreate
