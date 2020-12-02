@@ -46,89 +46,43 @@ class Crossword:
         """
         return self.crossword[row][col]
 
-    def place_word(self, word, row, col, direction):
+    def place_word(self, word, row, col, vertical):
         """
-        :type: word: string, row: int, col: int, direction: int
-        :input: the word to place, the row to place it in, the column to place it in, the direction to place it in (1 means north-south, 0 means east-west)
+        :type: word: string, row: int, col: int, vertical: bool
+        :input: the word to place, the row to place it in, the column to place it in, whether to place it vertically or not
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
-        # TODO there is a bug here, if you try to make this matrix: 
-        # a    x      a
-        # b    None   c
-        # a    None   a
-        # it fails to do so. I know that this causes an intersection issue 
-        # (which we should talk about) and should fail, but it gives an out of 
-        # bounds error before it gets there, so something is up
         dim = self.dimension
-        new_letters = 0
+        n = len(word)
+        if vertical and row+n <= dim:
+            if row-1 >= 0 and self.crossword[row-1][col] != None:
+                return False
+            if row+n < dim and self.crossword[row+n][col] != None:
+                return False
+            for i, char in enumerate(word):
+                if self.crossword[row+i][col] != char:
+                    if (col + 1 < dim and self.crossword[row+i][col+1] != None) or (col - 1 >= 0 and self.crossword[row+i][col-1] != None):
+                        return False
+            for i, char in enumerate(word):
+                self.crossword[row+i][col] = char
+            self.numwords += 1
+            return True
 
-        if direction == 0: # PLACES A WORD VERTICALLY
-            # out of bounds, consec with prev word, consec with following word
-            if row + len(word) > self.dimension: # out of bounds
-                print("Out of bounds")
-                return False 
-            if self.cw(max(0,row-1),col) != None: # consecutive with previous word
-                print("consecutive with previous word")
-                return False 
-            if self.cw(min(dim-1, row+len(word)),col) != None: # consecutive with following word
-                print("consecutive with following word")
-                return False 
-            
-            # currently only allows for one intersection 
-            intersect = False
-            intersect_ind_r = -1
-            for i, letter in enumerate(word):
-                if not (self.cw(row+i,col) == letter or self.cw(row+i,col) == None):
-                    return False 
-                if self.cw(row+i,col) == letter:
-                    if intersect: 
-                        return False 
-                    intersect = True
-                    intersect_ind_r = i 
-                if i != intersect_ind_r and (self.cw(row+i, max(0,col-1)) != None or self.cw(row+i,min(dim-1,col+1)) != None):
-                    return False  
-            
-            # need two loops for safety or else it places half finished words
-            for i,letter in enumerate(word): 
-                new_letters += 1
-                self.crossword[row + i][col] = letter
-        else: # PLACES A WORD HORIZONTALLY
-
-            if col + len(word) > dim: # out of bounds TODO Error here, run the example on lines 283 - 288
-                print("Out of bounds")
-                return False 
-            if self.cw(row, max(0, col-1)) != None: # consecutive with previous word
-                print("consecutive with previous word")
-                return False 
-            if self.cw(row, min(dim-1, col+len(word))) != None: # consecutive with following word
-                print("consecutive with following word")
-                return False 
-
-            # currently only allows for one intersection 
-            intersect = False
-            intersect_ind_c = -1
-            for i, letter in enumerate(word):
-                if not (self.cw(row,col+i) == letter or self.cw(row, col+i) == None):
-                    print("problem at point A")
-                    return False 
-                if self.cw(row,col+i) == letter:
-                    if intersect: 
-                        print("problem at point B")
-                        return False 
-                    intersect = True 
-                    intersect_ind_c = i 
-                if i != intersect_ind_c and (self.cw(max(0,row-1),col+i) != None or self.cw(min(dim-1,row+1),col+i) != None):
-                    print("problem at point C")
-                    return False 
-            
-            for i,letter in enumerate(word):
-                new_letters += 1
-                self.crossword[row][col+i] = letter 
-        
-        self.emptyspaces = self.emptyspaces - new_letters
-        self.numwords += 1
-        return True
+        if vertical == False and col+n <= dim:
+            if col-1 >= 0 and self.crossword[row][col-1] != None:
+                return False
+            if col+n < dim and self.crossword[row][col+n] != None:
+                return False
+            for i, char in enumerate(word):
+                if self.crossword[row][col+i] != char:
+                    if (row + 1 <= dim and self.crossword[row+1][col+i] != None) or (row - 1 >= 0 and self.crossword[row-1][col+i] != None):
+                        return False
+            for i, char in enumerate(word):
+                self.crossword[row][col+i] = char
+            self.numwords += 1
+            return True
+        return False
 
     def find_locs(self, word): 
         """
@@ -287,12 +241,12 @@ if __name__ == '__main__':
     #     y= copy.deepcopy(c)
     #     y.place_word("world", loc[0], loc[1], loc[2])
     #     print("\nCrossword with hello world: \n", y.print_matrix())
-    c= Crossword(3)
-    c.place_word("aba", 0,0,0)
-    c.place_word("aca", 0,2,0)
-    print("\nCrossword: \n", c.print_matrix())
-    c.place_word("axa", 0,0,1)
-    print("\nCrossword: \n", c.print_matrix())
+    # c= Crossword(3)
+    # c.place_word("aba", 0,0,0)
+    # c.place_word("aca", 0,2,0)
+    # print("\nCrossword: \n", c.print_matrix())
+    # c.place_word("axa", 0,0,1)
+    # print("\nCrossword: \n", c.print_matrix())
 
 
     #print("\nCrossword with hello and world: \n\n", c.print_matrix())
@@ -323,3 +277,11 @@ if __name__ == '__main__':
 
     #Test BruteForceCreate
     
+    #Test alternate place function:
+    d= Crossword(3)
+    print("placed successfully: ", d.place_word_alternate("aba", 0,0,True))
+    print("placed successfully: ", d.place_word_alternate("aca", 0,2,True))
+    print("\nCrossword: \n", d.print_matrix())
+    print("placed successfully: ", d.place_word_alternate("axa", 0,0,False))
+    print("\nCrossword: \n", d.print_matrix())
+
