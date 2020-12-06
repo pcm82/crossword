@@ -292,7 +292,7 @@ def recursive_beam_search(crossword, visited, word_list, threshold, beam_size):
         # recurse with reduced list of words
         best= recursive_beam_search(x, visited, word_list, threshold, beam_size)
         if not (best == None):
-            if best.percentFilled() > threshold:
+            if best.percentFilled() >= threshold:
                 return best
     #if all fails
     return None
@@ -407,10 +407,11 @@ if __name__ == '__main__':
     """
     test: compare beam_search vs brute force on a 4 by 4
     """
-    # testDict = {"hell": "", "like": "", "seen": "", "hi": "", "earth": "", "elves": ""}
-    # result = compareBeamBrute(dictionary = testDict, size = 4, threshhold = 0.30, beam_size = 3, visited = [])
-    # print(result)
+    #TODO: Figure out why beam search won't place "hi" into it's outputted crossword ever to match brute force performance. Also, why doesn't the threshold of 10/16 work for beamSearch? It's outputting a 10/16 crossword?
+    testDict = {"hell": "", "like": "", "seen": "", "hi": ""}
+    result = compareBeamBrute(dictionary = testDict, size = 4, threshhold = 10/16, beam_size = 3, visited = [])
+    print(result)
 
     #surprisingly, brute force produces an output on this input, but when you try a size any higher it takes too long to run. Can we trim the dictionary down to only 4 letter words?
-    result = compareBeamBrute(dictionary = makeDictionary(), size = 3, threshhold = 0.30, beam_size = 3, visited = [])
-    print(result)
+    # result = compareBeamBrute(dictionary = makeDictionary(), size = 3, threshhold = 0.30, beam_size = 3, visited = [])
+    # print(result)
