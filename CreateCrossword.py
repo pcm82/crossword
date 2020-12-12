@@ -48,9 +48,13 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
     maxWords = numWords
     best_cross = crossword
     bestFill = 0
-    for wordList,clueList in itertools.combinations(dictionary.items(), maxWords):
+    for itemList in itertools.combinations(dictionary.items(), maxWords):
         # print("permutation started")
         # print("wordList", wordList)
+        # print(wordList)
+        # print(clueList)
+        wordList = [item[0] for item in itemList]
+        clueList = [item[1] for item in itemList]
         cross= recursive_arrange(crossword, list(wordList), list(clueList))
         filled= cross.percentFilled()
         if findBest:
@@ -66,18 +70,18 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
         threshold_met = False
     return best_cross, threshold_met
 
-def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, beam = 3, heuristic = 0):
+def bestFirstSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, heuristic = 0):
     """
     :type: dictionary: dictionary, threshhold: float 0 <= threshold <= 1, size: integer 0 < size
     :input: a dictionary, threshold for how filled we would like to make a board of size "size"
     :rtype: a crossword string, and a boolean for whether it satisfies its threshold
-    :return: the most filled crossword we can generate by searching with beam search and our heuristic
+    :return: the most filled crossword we can generate by searching with best first search and our heuristic
     """ 
     c= Crossword.Crossword(size)
     word_list= list(dictionary.keys())
     clue_list= list(dictionary.values())
     visited = []
-    return recursive_beam_search(c, heuristic, visited, word_list, clue_list, threshold, beam)
+    return recursive_best_first_search(c, heuristic, visited, word_list, clue_list, threshold)
 
 def getHeuristicValue(crossword, heuristic):
     """
@@ -92,12 +96,12 @@ def getHeuristicValue(crossword, heuristic):
         return crossword.percentIntersect()
 
 
-def recursive_beam_search(crossword, heuristic, visited, word_list, clue_list, threshold, beam_size):
+def recursive_best_first_search(crossword, heuristic, visited, word_list, clue_list, threshold):
     """
-    :type: crossword: Crossword, heuristic: int (0 or 1), visited: list, word_list: list, threshold: 0 <= int <= 1, beam_size: int > 0 
-    :input: a crossword, the heuristic to use, a list of visited words, a list of words, a threshold value for the crossword be be filled, beam size
+    :type: crossword: Crossword, heuristic: int (0 or 1), visited: list, word_list: list, threshold: 0 <= int <= 1
+    :input: a crossword, the heuristic to use, a list of visited words, a list of words, a threshold value for the crossword be be filled
     :rtype: Crossword or None 
-    :return: the most filled crossword we can generate by searching with beam search and our heuristic, or None if we cannot surpass the threshold
+    :return: the most filled crossword we can generate by searching with best first search and our heuristic, or None if we cannot surpass the threshold
     """ 
     # pick word (use heuristic here? will do it just by order in the dictionary for now)
     n= len(word_list)
@@ -151,47 +155,36 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, clue_list, t
         for ele in sort:
             queue.append(ele)
             # print("adding to queue")
-        # for top beam size
-        for beam in range(min(beam_size, len(queue))):
-            # print("beam search")
+        # while there are things in the queue
+        while len(queue) > 0:
+            # print("best first search")
             # pop 
             x= queue.pop()
             # print(x.print_matrix())
             # recurse with reduced list of words
-            best= recursive_beam_search(x, heuristic, visited, word_list, clue_list, threshold, beam_size)
+            best= recursive_best_first_search(x, heuristic, visited, word_list, clue_list, threshold)
             if not (best == None):
                 if best.percentFilled() > threshold:
                     return best
-    # when beam is exhausted, try the others
-    while (len(queue) > 0):
-        # print("stuck here")
-        # pop 
-        x= queue.pop()
-        # print(x.print_matrix())
-        # recurse with reduced list of words
-        best= recursive_beam_search(x, heuristic, visited, word_list, clue_list, threshold, beam_size)
-        if not (best == None):
-            if best.percentFilled() >= threshold:
-                return best
     # if all fails
     return None
 
-def compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, beam_size = 3, heuristic = 0):
+def compareBestFirstBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, heuristic = 0):
     """
-    :type: dictionary: dictionary, size: int, threshold: int, beam_size: int, heuristic: int
-    :input: a dictionary, the dimensions of the crossword, the threshold percentage, the size of the beam, and the heuristic we wish to use
+    :type: dictionary: dictionary, size: int, threshold: int: int, heuristic: int
+    :input: a dictionary, the dimensions of the crossword, the threshold percentage, and the heuristic we wish to use
     :rtype: string
-    :return: the comparison of performance between beam search and brute force based on the input parameters
+    :return: the comparison of performance between search and brute force based on the input parameters
     """ 
-    result = "\nBeam Search Crossword: "
-    beamTime0 = time.perf_counter()
-    beamCrossword = beamSearchCreator(dictionary, threshold, size, beam_size, heuristic)
-    if beamCrossword:
-        result += "\n\n" + str(beamCrossword.print_matrix()) + '\n\nMeets threshold: True' + '\nPercent filled: ' + str(beamCrossword.percentFilled()) 
+    result = "\nBest First Search Crossword: "
+    bestTime0 = time.perf_counter()
+    bestCrossword = bestFirstSearchCreator(dictionary, threshold, size, heuristic)
+    if bestCrossword:
+        result += "\n\n" + str(bestCrossword.print_matrix()) + '\n\nMeets threshold: True' + '\nPercent filled: ' + str(bestCrossword.percentFilled()) 
     else:
         result += "----------NO CROSSWORD FOUND---------- \nMeets threshold: False"
-    beamTime1 = time.perf_counter() - beamTime0
-    result += "\ntime for beam search: " + str(round(beamTime1, 5))
+    bestTime1 = time.perf_counter() - bestTime0
+    result += "\ntime for best first search: " + str(round(bestTime1, 5))
     bruteTime0 = time.perf_counter()
     bruteCrossword, meetsThreshold = bruteForceCreator(dictionary, threshold, size, False)
     result += ("\n\nBrute force crossword: \n\n" + str(bruteCrossword.print_matrix()) + "\n\nMeets threshold: " 
@@ -199,9 +192,9 @@ def compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, 
     bruteTime1 = time.perf_counter() - bruteTime0
     result += "\ntime for brute search: " + str(round(bruteTime1, 5))
 
-    if beamCrossword:
-       result += ("\n\nbeam search was " + str(round(bruteTime1/beamTime1, 2)) + " times faster, but produced an output only " 
-       + str(beamCrossword.percentFilled()/bruteCrossword.percentFilled()) + " as filled as brute force\n")
+    if bestCrossword:
+       result += ("\n\nbest first search was " + str(round(bruteTime1/bestTime1, 2)) + " times faster, but produced an output only " 
+       + str(bestCrossword.percentFilled()/bruteCrossword.percentFilled()) + " as filled as brute force\n")
     return result
 
 
@@ -220,7 +213,7 @@ if __name__ == '__main__':
     # print(locs)
     # for loc in locs:
     #   a2= copy.deepcopy(a)
-    #   a2.place_word("hi", loc[0], loc[1], loc[2])
+    #   a2.place_word("hi", "", loc[0], loc[1], loc[2])
     #   print(a2.print_matrix())
     #   print("")
 
@@ -228,65 +221,68 @@ if __name__ == '__main__':
     test: num_intersect
     """
     # e= Crossword.Crossword(5)
-    # e.place_word("hello", 0,0,0)
-    # e.place_word("hoard", 0,0,1)
-    # e.place_word("llama", 0,2,1)
+    # e.place_word("hello", "", 0,0,0)
+    # e.place_word("hoard", "", 0,0,1)
+    # e.place_word("llama", "", 0,2,1)
     # # e.place_word("i", 3, 4, 0)
-    # e.place_word("man", 3, 2, 0)
+    # e.place_word("man", "", 3, 2, 0)
     # print("\nCrossword: \n", e.print_matrix())
     # print("words: ", e.words)
     # print("Number of Intersections: \n", e.num_intersect())
 
     """ 
-    test: recursive_beam_search
+    test: recursive_best_first_search
     """ 
 
     # f= Crossword.Crossword(3)
-    # out1= recursive_beam_search(f, 0, [], [], 0.5, 2)
-    # print("Empty beam search: \n", out1.print_matrix())
-    # out2= recursive_beam_search(f, 0, [], ["hi"], 0.5, 2)
-    # print("Beam Search- hi in 3x3: \n", out2) #should give none
-    # out3= recursive_beam_search(f, 0, [], ["hi"], 1/3, 2)
+    # out1= recursive_best_first_search(f, 0, [], [], [], 0.5)
+    # print("Empty best first search: \n", out1.print_matrix())
+    # out2= recursive_best_first_search(f, 0, [], ["hi"], [""], 0.5)
+    # print("Best First Search- hi in 3x3: \n", out2) #should give none
+    # out3= recursive_best_first_search(f, 0, [], ["hi"], [""], 1/3)
     # if out3:
-    #     print("Beam Search- hi in 3x3: \n", out3.print_matrix())    
-    # out4= recursive_beam_search(f, 0, [], ["hen", "man", "zxj"], 1/3, 2)
+    #     print("Best First Search- hi in 3x3: \n", out3.print_matrix())    
+    # out4= recursive_best_first_search(f, 0, [], ["hen", "man", "zxj"], ["", "", ""], 1/3)
     # if out4:
-    #     print("Beam Search- hi in 3x3: \n", out4.print_matrix())    
+    #     print("Best First Search- hi in 3x3: \n", out4.print_matrix())    
 
     """
     test: recursive_arrange
     """ 
     # testDict = {"hell": "", "like": "", "seen": "", "hi": ""}
+    # items= testDict.items()
+    # wordList= [item[0] for item in items]
+    # clueList= [item[1] for item in items]
     # f= Crossword.Crossword(4)
-    # out= recursive_arrange(f, list(testDict.keys())) 
+    # out= recursive_arrange(f, wordList, clueList) 
     # print(out.print_matrix())
         
     """ 
-    test: beamSearchCreator
+    test: bestFirstSearchCreator
     """ 
     # testDict = {"hell": "", "like": "", "seen": "", "hi": ""}
-    # result= beamSearchCreator(dictionary = testDict, threshold = 10/16, size = 4, beam = 3, heuristic = 0)
+    # result= bestFirstSearchCreator(dictionary = testDict, threshold = 8/16, size = 4, heuristic = 0)
     # print(result.print_matrix())
 
     # c= Crossword.Crossword(5)
-    # c.place_word("hi", 4, 3, 0)
+    # c.place_word("hi", "", 4, 3, 0)
     # print("placed hi")
     # print(c.print_matrix())
-    # result= c.place_word("seen", 4, 1, 0) 
+    # result= c.place_word("seen", "", 4, 1, 0) 
     # print("placed seen") 
     # print(c.print_matrix()) #should not change from above
     
     """
-    test: compare beam_search vs brute force on a 4 by 4
+    test: compare best first search vs brute force on a 4 by 4
     """
     # 
-    testDict = {"helloworld": "", "foobarfoobarfoobar":"", "hell": "", "like": "", "seen": "", "hi": "", "sup": "", "bellows": "", "cupholder": "", "uplifting": ""}
-    result = compareBeamBrute(dictionary = testDict, size = 4, threshold = 10/16, beam_size = 3, heuristic= 0)
-    print(result)
+    # testDict = {"helloworld": "", "foobarfoobarfoobar":"", "hell": "", "like": "", "seen": "", "hi": "", "sup": "", "bellows": "", "cupholder": "", "uplifting": ""}
+    # result = compareBestFirstBrute(dictionary = testDict, size = 4, threshold = 10/16, heuristic= 0)
+    # print(result)
 
     testDict= {"AAP": "", "CALS": "","CKB": "","CTB": "","EZRA": "","ILR": "", "OLIN": "", "MEWS": "","RAND": "","ROSE": "","SAGE": "","PSB": "","URIS": "","WINES": "","TCAT": "","LIBE": "","MANN": "","EHUB": "","MACS": "","EDDY": "", "BUS": "","SNOW": "","BOBA": "","CMS": "","BRB": "","DUO": "","GET": ""}
-    result = compareBeamBrute(dictionary = testDict, size = 4, threshold = 0.6, beam_size = 3, heuristic= 0)
+    result = compareBestFirstBrute(dictionary = testDict, size = 4, threshold = 0.6, heuristic= 0)
     print(result) # should not find anything
-    # #surprisingly, brute force produces an output on this input, but when you try a size any higher it takes too long to run. Can we trim the dictionary down to only 4 letter words?
-    result = compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.6, beam_size = 3, heuristic = 0)
+    #surprisingly, brute force produces an output on this input, but when you try a size any higher it takes too long to run. Can we trim the dictionary down to only 4 letter words?
+    result = compareBestFirstBrute(dictionary = makeDictionary(), size = 5, threshold = 0.5, heuristic = 0)
     print(result)
