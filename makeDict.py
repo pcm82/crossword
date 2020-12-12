@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def makeDictionary():
     """
     :type: 
@@ -14,6 +15,23 @@ def makeDictionary():
     for i in range(len(words)):
         array.append((words[i], clues[i]))
     return dict(array)
+
+
+def makeSmallDictionary():
+    """
+    :type: 
+    :input: 
+    :rtype: dict = {string: string}
+    :return: dictionary of form {word: clue}
+    """
+    data = pd.read_excel("Words,clues_short.xlsx")
+    words = data['Word']
+    clues = data['Clue']
+    array = []
+    for i in range(len(words)):
+        array.append((words[i], clues[i]))
+    return dict(array)
+
 
 def shortestSort(d):
     """
@@ -30,6 +48,7 @@ def shortestSort(d):
         array.append((key, d.get(key)))
     return array
 
+
 def countIntersections(word1, word2):
     """
     :type: word1: string, word2: string
@@ -39,6 +58,7 @@ def countIntersections(word1, word2):
     """
     inter = set(word1.lower()).intersection(word2.lower())
     return len(inter)
+
 
 def mostIntersectionsSort(d, currentWords):
     """
@@ -61,13 +81,17 @@ def mostIntersectionsSort(d, currentWords):
 
 
 if __name__ == '__main__':
-    d = makeDictionary() # make the dictionary
-    print("SORTED KEYS BY LENGTH", shortestSort(d)) # sort the keys according to length
+    d = makeDictionary()  # make the dictionary
+    # sort the keys according to length
+    print("SORTED KEYS BY LENGTH", shortestSort(d))
 
     # count intersections between two words
-    print("The number of intersections between hello and world is: ", countIntersections("hello", "world"))
-    print("The number of intersections between hello and cello is:", countIntersections("hello", "cello"))
+    print("The number of intersections between hello and world is: ",
+          countIntersections("hello", "world"))
+    print("The number of intersections between hello and cello is:",
+          countIntersections("hello", "cello"))
 
     # sort keys by intersections
     currentWords = ["hello", "world", "cello"]
-    print("SORTED KEYS BY INTERSECTIONS", mostIntersectionsSort(d, currentWords))
+    print("SORTED KEYS BY INTERSECTIONS",
+          mostIntersectionsSort(d, currentWords))
