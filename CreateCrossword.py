@@ -4,12 +4,13 @@ import itertools
 from makeDict import *
 import time
 import Crossword
+import PySimpleGUI as sg 
 
-def recursive_arrange(crossword, wordlist):
+def recursive_arrange(crossword, wordlist, cluelist):
     """
-    :type: crossword: crossword, wordlist: string list
+    :type: crossword: crossword, wordlist: string list, cluelist: string list
     :input: crossword to place words in, wordlist is a list of words yet to 
-            place in the crossword
+            place in the crossword, cluelist is the corresponding clues
     :rtype: returns a crossword, a remaining word list, and an efficiency
     :return: the crossword with the first word in the word list placed
     """
@@ -19,19 +20,20 @@ def recursive_arrange(crossword, wordlist):
         return best_cross
     else: 
         word= wordlist[0]
+        clue=cluelist[0]
         locs= crossword.find_locs(word)
         if len(locs) > 0:
             for location in locs:
                 y = copy.deepcopy(crossword)
-                y.place_word(word, location[0], location[1], location[2], True)
-                cross= recursive_arrange(y, wordlist[1:len(wordlist)])
+                y.place_word(word, clue, location[0], location[1], location[2], True)
+                cross= recursive_arrange(y, wordlist[1:len(wordlist)], cluelist[1:len(cluelist)])
                 filled= cross.percentFilled()
                 if filled > best_fill: 
                     best_fill = filled
                     best_cross= cross
             return best_cross
         else: 
-            cross= recursive_arrange(crossword, wordlist[1:len(wordlist)])
+            cross= recursive_arrange(crossword, wordlist[1:len(wordlist)], cluelist[1:len(cluelist)])
             return cross
 
 def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, findBest = True):
@@ -46,10 +48,10 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
     maxWords = numWords
     best_cross = crossword
     bestFill = 0
-    for wordList in itertools.combinations(dictionary.keys(), maxWords):
+    for wordList,clueList in itertools.combinations(dictionary.items(), maxWords):
         # print("permutation started")
         # print("wordList", wordList)
-        cross= recursive_arrange(crossword, list(wordList))
+        cross= recursive_arrange(crossword, list(wordList), list(clueList))
         filled= cross.percentFilled()
         if findBest:
             if filled > bestFill:
@@ -73,8 +75,9 @@ def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
     """ 
     c= Crossword.Crossword(size)
     word_list= list(dictionary.keys())
+    clue_list= list(dictionary.values())
     visited = []
-    return recursive_beam_search(c, heuristic, visited, word_list, threshold, beam)
+    return recursive_beam_search(c, heuristic, visited, word_list, clue_list, threshold, beam)
 
 def getHeuristicValue(crossword, heuristic):
     """
@@ -89,7 +92,7 @@ def getHeuristicValue(crossword, heuristic):
         return crossword.percentIntersect()
 
 
-def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, beam_size):
+def recursive_beam_search(crossword, heuristic, visited, word_list, clue_list, threshold, beam_size):
     """
     :type: crossword: Crossword, heuristic: int (0 or 1), visited: list, word_list: list, threshold: 0 <= int <= 1, beam_size: int > 0 
     :input: a crossword, the heuristic to use, a list of visited words, a list of words, a threshold value for the crossword be be filled, beam size
@@ -102,6 +105,8 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
         return crossword
     word= word_list[0]
     word_list= word_list[1:n]
+    clue= clue_list[0]
+    clue_list= clue_list[1:n]
     # print(word)
     crosswords= []
     filled = []
@@ -111,6 +116,8 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
     while len(locs) < 1 and len(word_list) > 0:
         word = word_list[0]
         word_list= word_list[1:n]
+        clue = clue_list[0]
+        clue_list= clue_list[1:n]
         locs = crossword.find_locs(word)
        # print("finding word")
         # print(word)
@@ -120,7 +127,7 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
         for loc in locs:
             y= copy.deepcopy(crossword)
             # print("placed word")
-            y.place_word(word, loc[0], loc[1], loc[2])
+            y.place_word(word, clue, loc[0], loc[1], loc[2])
             crosswords.append(y)
         # for each crossword
         for c in crosswords:
@@ -151,7 +158,7 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
             x= queue.pop()
             # print(x.print_matrix())
             # recurse with reduced list of words
-            best= recursive_beam_search(x, heuristic, visited, word_list, threshold, beam_size)
+            best= recursive_beam_search(x, heuristic, visited, word_list, clue_list, threshold, beam_size)
             if not (best == None):
                 if best.percentFilled() > threshold:
                     return best
@@ -162,7 +169,7 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
         x= queue.pop()
         # print(x.print_matrix())
         # recurse with reduced list of words
-        best= recursive_beam_search(x, heuristic, visited, word_list, threshold, beam_size)
+        best= recursive_beam_search(x, heuristic, visited, word_list, clue_list, threshold, beam_size)
         if not (best == None):
             if best.percentFilled() >= threshold:
                 return best

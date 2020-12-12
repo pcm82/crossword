@@ -11,6 +11,15 @@ class Crossword:
         self.crossword = [[None for i in range(dim)] for j in range(dim)]
         self.words = {} 
 
+    def get_dim(self):
+        return self.dimension
+    
+    def get_crossword(self):
+        return self.crossword 
+    
+    def get_words(self):
+        return self.words 
+
     def print_matrix(self):
         """
         :type: 
@@ -73,12 +82,6 @@ class Crossword:
         """
         return (self.num_intersect() / ( self.dimension * self.dimension))
 
-    def cw(self,row,col):
-        """
-        returns the element in this row and column of the crossword
-        """
-        return self.crossword[row][col]
-
     def can_place(self, word, row, col, vertical, editCrossword = True):
         """
         :type: word: string, row: int, col: int, vertical: bool
@@ -121,10 +124,10 @@ class Crossword:
         # if nothing returns true, return false. 
         return False
 
-    def place_word(self, word, row, col, vertical, editCrossword = True):
+    def place_word(self, word, clue, row, col, vertical, editCrossword = True):
         """
-        :type: word: string, row: int, col: int, vertical: bool
-        :input: the word to place, the row to place it in, the column to place it in, whether to place it vertically or not
+        :type: word: string, clue: string, row: int, col: int, vertical: bool
+        :input: the word to place, the corresponding clue, the row to place it in, the column to place it in, whether to place it vertically or not
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
@@ -144,7 +147,7 @@ class Crossword:
                 self.crossword[row][col+i] = char
             self.numwords += 1
         # add word to the words list
-        self.words[word]= (row, col, vertical)
+        self.words[word]= (row, col, vertical, clue)
 
     def find_locs(self, word): 
         """
@@ -168,10 +171,10 @@ class Crossword:
                     locations.append((k, l, False))
         return locations
 
-    def place_word_randomly_unoptimal(self, word):
+    def place_word_randomly_unoptimal(self, word, clue):
         """
-        :type: word: string
-        :input: word to randomly place on the crossword
+        :type: word: string, clue: string 
+        :input: word to randomly place on the crossword, clue is corresponding clue
         :rtype: bool
         :return: True if placed successfuly, False otherwise
         """
@@ -180,4 +183,4 @@ class Crossword:
         if len(locs) < 1:
             return False
         rand_location = locs[random.randint(0, len(locs) - 1)] 
-        return self.place_word(word, rand_location[0], rand_location[1], rand_location[2], True)
+        return self.place_word(word, clue, rand_location[0], rand_location[1], rand_location[2], True)
