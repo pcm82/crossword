@@ -1,4 +1,6 @@
 import pandas as pd
+import string
+import random
 
 
 def makeDictionary():
@@ -31,6 +33,15 @@ def makeSmallDictionary():
     for i in range(len(words)):
         array.append((words[i], clues[i]))
     return dict(array)
+
+def makeRandomDictionary(n, max_length):
+    dic= []
+    for i in range(n):
+        l= random.randint(1,max_length)
+        letters = string.ascii_uppercase
+        word= ''.join(random.choice(letters) for i in range(l))
+        dic.append((word, ""))
+    return dict(dic)
 
 
 def shortestSort(d):
@@ -81,17 +92,21 @@ def mostIntersectionsSort(d, currentWords):
 
 
 if __name__ == '__main__':
-    d = makeDictionary()  # make the dictionary
-    # sort the keys according to length
-    print("SORTED KEYS BY LENGTH", shortestSort(d))
+    # d = makeDictionary()  # make the dictionary
+    # # sort the keys according to length
+    # print("SORTED KEYS BY LENGTH", shortestSort(d))
 
-    # count intersections between two words
-    print("The number of intersections between hello and world is: ",
-          countIntersections("hello", "world"))
-    print("The number of intersections between hello and cello is:",
-          countIntersections("hello", "cello"))
+    # # count intersections between two words
+    # print("The number of intersections between hello and world is: ",
+    #       countIntersections("hello", "world"))
+    # print("The number of intersections between hello and cello is:",
+    #       countIntersections("hello", "cello"))
 
-    # sort keys by intersections
-    currentWords = ["hello", "world", "cello"]
-    print("SORTED KEYS BY INTERSECTIONS",
-          mostIntersectionsSort(d, currentWords))
+    # # sort keys by intersections
+    # currentWords = ["hello", "world", "cello"]
+    # print("SORTED KEYS BY INTERSECTIONS",
+    #       mostIntersectionsSort(d, currentWords))
+
+    # # test random dictionary maker
+    d= makeRandomDictionary(20)
+    print(d.keys())
