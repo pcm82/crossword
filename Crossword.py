@@ -9,7 +9,7 @@ class Crossword:
         self.dimension = dim
         self.numwords = 0
         self.crossword = [[None for i in range(dim)] for j in range(dim)]
-        self.words = {} #dictionary
+        self.words = {} 
 
     def print_matrix(self):
         """
@@ -89,20 +89,16 @@ class Crossword:
         dim = self.dimension
         n = len(word)
         if vertical and row+n <= dim:
-            #if there is a letter directly above or below
             if row >= 1 and self.crossword[row-1][col] != None:
                 return False
             if row+n < dim and self.crossword[row+n][col] != None:
                 return False
             for i, char in enumerate(word):
                 if self.crossword[row+i][col] != char:
-                    # if there is a letter directly to the left
                     if (col + 1 < dim and self.crossword[row+i][col+1] != None):
                         return False
-                    # if there is a letter directly to the right
                     if (col >= 1 and self.crossword[row+i][col-1] != None):
                         return False
-                    #if there is a letter in the spot
                     if self.crossword[row+i][col] != None:
                         return False
             if editCrossword:
@@ -164,7 +160,6 @@ class Crossword:
         """
 
         locs= self.find_locs(word)
-        # print(word, locs)
         if len(locs) < 1:
             return False
         rand_location = locs[random.randint(0, len(locs) - 1)] 
@@ -190,7 +185,6 @@ def recursive_arrange(crossword, wordlist):
                 y = copy.deepcopy(crossword)
                 y.place_word(word, location[0], location[1], location[2], True)
                 cross= recursive_arrange(y, wordlist[1:len(wordlist)])
-                # print("\n\nCrossword:\n\n", cross.print_matrix())
                 filled= cross.percentFilled()
                 if filled > best_fill: 
                     best_fill = filled
@@ -207,10 +201,9 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
     :rtype: a crossword string, and a boolean for whether it satisfies its threshold
     :return: the most filled crossword we can generate by searching the entire sample space
     """ 
-    
     numWords = len(dictionary)
     crossword = Crossword(size)
-    maxWords = numWords #min(numWords, int(numTiles / smallestWordLength))
+    maxWords = numWords
     best_cross = crossword
     bestFill = 0
     for wordList in itertools.permutations(dictionary.keys(), maxWords):
@@ -235,15 +228,18 @@ def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
     :rtype: a crossword string, and a boolean for whether it satisfies its threshold
     :return: the most filled crossword we can generate by searching with beam search and our heuristic
     """ 
-    #TODO 11.30.52: Write this heuristic function, probably after we finish the brute force method above
-    #Create Crossword
     c= Crossword(size)
-    # make the word list from the dictionary
     word_list= list(dictionary.keys())
     visited = []
     return recursive_beam_search(c, heuristic, visited, word_list, threshold, beam)
 
 def getHeuristicValue(crossword, heuristic):
+    """
+    :type: crossword: Crossword, heuristic: int (0 or 1)
+    :input: a crossword and an integer representing the heuristic we wish to apply to it
+    :rtype: 0 <= int <= 1
+    :return: the percentage of the tiles filled or percentage of intersecting tiles based on heuristic
+    """ 
     if heuristic == 0:
         return crossword.percentFilled()
     else: 
@@ -251,6 +247,12 @@ def getHeuristicValue(crossword, heuristic):
 
 
 def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, beam_size):
+    """
+    :type: crossword: Crossword, heuristic: int (0 or 1), visited: list, word_list: list, threshold: 0 <= int <= 1, beam_size: int > 0 
+    :input: a crossword, the heuristic to use, a list of visited words, a list of words, a threshold value for the crossword be be filled, beam size
+    :rtype: Crossword or None 
+    :return: the most filled crossword we can generate by searching with beam search and our heuristic, or None if we cannot surpass the threshold
+    """ 
     # pick word (use heuristic here? will do it just by order in the dictionary for now)
     n= len(word_list)
     if n == 0:
@@ -322,6 +324,12 @@ def recursive_beam_search(crossword, heuristic, visited, word_list, threshold, b
     return None
 
 def compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, beam_size = 3, heuristic = 0):
+    """
+    :type: dictionary: dictionary, size: int, threshold: int, beam_size: int, heuristic: int
+    :input: a dictionary, the dimensions of the crossword, the threshold percentage, the size of the beam, and the heuristic we wish to use
+    :rtype: string
+    :return: the comparison of performance between beam search and brute force based on the input parameters
+    """ 
     result = "\nBeam Search Crossword: "
     beamTime0 = time.perf_counter()
     beamCrossword = beamSearchCreator(dictionary, threshold, size, beam_size, heuristic)
@@ -331,15 +339,16 @@ def compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, 
         result += "----------NO CROSSWORD FOUND---------- \nMeets threshold: False"
     beamTime1 = time.perf_counter() - beamTime0
     result += "\ntime for beam search: " + str(round(beamTime1, 5))
-
     bruteTime0 = time.perf_counter()
     bruteCrossword, meetsThreshold = bruteForceCreator(dictionary, threshold, size, False)
-    result += "\n\nBrute force crossword: \n\n" + str(bruteCrossword.print_matrix()) + "\n\nMeets threshold: " + str(meetsThreshold) + "\nPercent filled: " + str(bruteCrossword.percentFilled())
+    result += ("\n\nBrute force crossword: \n\n" + str(bruteCrossword.print_matrix()) + "\n\nMeets threshold: " 
+    + str(meetsThreshold) + "\nPercent filled: " + str(bruteCrossword.percentFilled()))
     bruteTime1 = time.perf_counter() - bruteTime0
     result += "\ntime for brute search: " + str(round(bruteTime1, 5))
 
     if beamCrossword:
-       result += "\n\nbeam search was " + str(round(bruteTime1/beamTime1, 2)) + " times faster, but produced an output only " + str(beamCrossword.percentFilled()/bruteCrossword.percentFilled()) + " as filled as brute force\n"
+       result += ("\n\nbeam search was " + str(round(bruteTime1/beamTime1, 2)) + " times faster, but produced an output only " 
+       + str(beamCrossword.percentFilled()/bruteCrossword.percentFilled()) + " as filled as brute force\n")
     return result
 
 
@@ -347,59 +356,7 @@ if __name__ == '__main__':
 
     testDict = {"hello": "", "hi": "", "dog": "", "cat": "", "place": "", "hoax": ""} #create a small dictionary for testing purposes
     testDict2 = {"hemp": "", "hoax": "", "bo": "", "ba": ""} #crafted to output with overlaps
-
-    """
-    test: basic placement
-    """
-    # c= Crossword(3)
-    # c.place_word("aba", 0,0,vertical = True, editCrossword = True)
-    # c.place_word("aca", 0,2,vertical = True, editCrossword = True)
-    # print("\nCrossword: \n", c.print_matrix())
-    # c.place_word("axa", 0,0,vertical = False, editCrossword=True)
-    # print("\nCrossword: \n", c.print_matrix())
-    # c2= Crossword(5)
-    # c2.place_word("hello", 0,0,0)
-    # c2.place_word("hoard", 0,0,1)
-    # c2.place_word("llama", 0,3,1)
-    # c2.place_word("llama", 0,2,1) #should fail
-    # c2.place_word("ama", 3, 2, 0)
-    # print("\nCrossword: \n", c2.print_matrix())
-
-    """
-    test: find_locs and place_word_randomly
-    """
-    # d = Crossword(6)
-    # print("locations of hello", d.find_locs("hello"))
-    # for loc in d.find_locs("hello"):
-    #     y= copy.deepcopy(d)
-    #     y.place_word("hello", loc[0], loc[1], loc[2])
-    #     print("\nCrossword with loc \n", loc)
-    #     print("\n", y.print_matrix())
-    
-    # d.place_word_randomly_unoptimal("hello")
-    # print(d.print_matrix())
-    # print("locations of hoard: ", d.find_locs("hoard"))
-    # d.place_word_randomly_unoptimal("hoard")
-    # print(d.print_matrix())
-    
-    """
-    test: bruceForce crossword creation-- this test demonstrates how the brute force creation creates things with overlap to demonstrate our find_locs and place word functionality
-    I recommend testing with 4 or 5 words and dimension of 4 for quick output. It would be good to know whether the runtime suffers more from dimension or word count
-    """
-    # print("Executing brute force: ")
-    # bruteCrossword, meetsThreshold = bruteForceCreator(testDict2, .625, 4)
-    # print("\n\nBrute force crossword: \n\n", bruteCrossword.print_matrix())
-    # print("Meets threshold: ", meetsThreshold)
-    # print("Percent filled: ", bruteCrossword.percentFilled())
-
-    """
-    test: recursive_arrange
-    """
-    # c = Crossword(3) #initialize a 5 by 5 crossword
-    # testWords= ["aoa", "aba", "aca", "ama"]
-    # cross= recursive_arrange(c, testWords)
-    # print("\n\nRecursive crossword:\n\n", cross.print_matrix())
-
+    testDict3 = makeDictionary()
     """
     test: num_intersect
     """
@@ -426,8 +383,7 @@ if __name__ == '__main__':
     # out4= recursive_beam_search(f, [], ["hen", "man", "zxj"], 1/3, 2)
     # if out4:
     #     print("Beam Search- hi in 3x3: \n", out4.print_matrix())    
-    
-
+        
     """ 
     test: beamSearchCreator
     """ 
@@ -448,9 +404,9 @@ if __name__ == '__main__':
     """
     #TODO: Figure out why beam search won't place "hi" into it's outputted crossword ever to match brute force performance. Also, why doesn't the threshold of 10/16 work for beamSearch? It's outputting a 10/16 crossword?
     testDict = {"hell": "", "like": "", "seen": "", "hi": ""}
-    result = compareBeamBrute(dictionary = testDict, size = 4, threshold = 10/16, beam_size = 3, heuristic= 0)
+    result = compareBeamBrute(dictionary = testDict3, size = 4, threshold = 10/16, beam_size = 3, heuristic= 0)
     print(result)
 
     # surprisingly, brute force produces an output on this input, but when you try a size any higher it takes too long to run. Can we trim the dictionary down to only 4 letter words?
     # result = compareBeamBrute(dictionary = makeDictionary(), size = 5, threshold = 0.50, beam_size = 3, heuristic = 0)
-    # print(result)
+    # print(result)̀
