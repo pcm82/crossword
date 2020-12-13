@@ -4,36 +4,32 @@ import CreateCrossword
 import time
 import math
 
-def compare_beams():
+def make_table_best():
   """
   :type: none
   :input: none
   :rtype: returns a string and a vector of floats. 
-  :return: returns a string table describing the data on how the beam size 
+  :return: returns a string table describing the data on how the crossword size 
           affects speed to get a crossword. Also returns a vector of times. 
-  """ 
-  t= []
-  beams= []
-  meets_threshold= []
-  result= "Beam Size:      Completed:        Time:     \n"
-  dictionary = makeDict.makeRandomDictionary(100, 10)
-  for exp in range(50):
-    threshold = 0.5
-    size= 10
-    beam_size= math.ceil(10**(exp / 2))
-    beams.append(beam_size)
-    bestTime0 = time.perf_counter()
-    bestCrossword = CreateCrossword.bestFirstSearchCreator(dictionary, threshold, size, 0)
-    if not (bestCrossword == None):
-        meets_threshold.append(True)
-    else:
-        meets_threshold.append(False)
-    bestTime1 = time.perf_counter() - bestTime0
-    t.append(round(bestTime1, 5))
-    result += str(beam_size) + "               " + str(not (bestCrossword == None)) + "              " + str(round(bestTime1, 5)) + "\n"
-  print(beams)
-  print(t)
-  return t, result
+  """
+  times = []
+  d_vec= []
+  dict_size= 100
+  for trial in range(10): 
+    print("trial " + str(trial))
+    t = []
+    for d in range(10):
+      dictionary = makeDict.makeRandomDictionary(dict_size, d + 1)
+      threshold = 0.5
+      d_vec.append(d + 1)
+      size= d + 1
+      bestTime0 = time.perf_counter()
+      bestCrossword = CreateCrossword.bestFirstSearchCreator(dictionary, threshold, size, 0)
+      bestTime1 = time.perf_counter() - bestTime0
+      t.append(round(bestTime1, 5))
+    times.append(t)
+  return d_vec, times
+
 
 def compare_BB_num_words():
   """
@@ -102,6 +98,33 @@ def compare_BB_cross_size():
     result += str(size) + "                " + str(round(bruteTime1, 5)) + "            " + str(round(bestTime1, 5)) + "\n"
   return d_vec, t_brute, t_best, result
 
+def compare_worst_case():
+  """
+  :type: none
+  :input: none
+  :rtype: returns an int vector, and two float vectors. 
+  :return: returns an int vector to numerate the number of random trials and 
+            two float vectors to represent the run times of each algorithm for 
+            each  trial
+  """
+  t_brute= []
+  t_best= []
+  dict_size= 3
+  trials= range(50)
+  for trial in trials:
+    dictionary = makeDict.makeRandomDictionary(dict_size, 4)
+    threshold = 0.5
+    size= 5
+    bestTime0 = time.perf_counter()
+    bestCrossword = CreateCrossword.bestFirstSearchCreator(dictionary, threshold, size, 0)
+    bestTime1 = time.perf_counter() - bestTime0
+    t_best.append(round(bestTime1, 5))
+    bruteTime0 = time.perf_counter()
+    bruteCrossword, meetsThreshold = CreateCrossword.bruteForceCreator(dictionary, threshold, size, False)
+    bruteTime1 = time.perf_counter() - bruteTime0
+    t_brute.append(round(bruteTime1, 5))
+  return trials, t_brute, t_best
+
 def compareHeuristics():
   """
   :type: none
@@ -139,12 +162,14 @@ def compareHeuristics():
   return t, perc_filled, perc_inter, result  
   
 
+
 if __name__ == '__main__':
   """
-  Compare beam sizes
+  Analyze time complexity of best first search
   """
-  # t, result = compare_beams()
-  # print(result)
+  # d_vec, t = make_table_best()
+  # print("Dimension: \n" + str(d_vec) + "\n")
+  # print("Time: \n" + str(t) + "\n")
 
   """
   Compare brute force vs best first search with respect to dictionary size
@@ -155,11 +180,19 @@ if __name__ == '__main__':
   """
   Compare brute force vs best first search with respect to crossword size
   """
-  d_vec, t_brute, t_best, result = compare_BB_cross_size()
-  print("Dimension: \n" + str(d_vec) + "\n")
+  # d_vec, t_brute, t_best, result = compare_BB_cross_size()
+  # print("Dimension: \n" + str(d_vec) + "\n")
+  # print("Brute Force Time: \n" + str(t_brute) + "\n")
+  # print("Best First Search Time: \n" + str(t_best) + "\n")
+  # print(result)
+
+  """
+  Compare brute force vs best first in worst case: 
+  """
+  trials, t_brute, t_best= compare_worst_case()
+  print("Trials: \n" + str(trials) + "\n")
   print("Brute Force Time: \n" + str(t_brute) + "\n")
   print("Best First Search Time: \n" + str(t_best) + "\n")
-  print(result)
 
   """
   Compare Heuristics
