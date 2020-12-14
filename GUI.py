@@ -7,7 +7,7 @@ import Crossword
 BOX_SIZE = 50 # pixel size of box
 
 def makeGUI(dim, crossword, words): 
-  sg.theme('DarkRed2')
+  sg.theme('DarkRed')
   text_ids = [None]*dim
 
   # prepare words 
