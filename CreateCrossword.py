@@ -71,19 +71,6 @@ def bruteForceCreator(dictionary = makeDictionary(), threshold = .80, size = 5, 
         threshold_met = False
     return best_cross, threshold_met
 
-def bestFirstSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, heuristic = 0):
-    """
-    :type: dictionary: dictionary, threshhold: float 0 <= threshold <= 1, size: integer 0 < size
-    :input: a dictionary, threshold for how filled we would like to make a board of size "size"
-    :rtype: a crossword string, and a boolean for whether it satisfies its threshold
-    :return: the most filled crossword we can generate by searching with best first search and our heuristic
-    """ 
-    c= Crossword.Crossword(size)
-    word_list= list(dictionary.keys())
-    clue_list= list(dictionary.values())
-    visited = []
-    return recursive_best_first_search(c, heuristic, visited, word_list, clue_list, threshold)
-
 def beamSearchCreator(dictionary = makeDictionary(), threshold = .80, size = 5, beam_size = 3, heuristic = 0):
     """
     :type: dictionary: dictionary, threshhold: float 0 <= threshold <= 1, size: integer 0 < size
@@ -110,80 +97,6 @@ def getHeuristicValue(crossword, heuristic):
     else: 
         return crossword.percentIntersect()
 
-
-def recursive_best_first_search(crossword, heuristic, visited, word_list, clue_list, threshold):
-    """
-    :type: crossword: Crossword, heuristic: int (0 or 1), visited: list, word_list: list, threshold: 0 <= int <= 1
-    :input: a crossword, the heuristic to use, a list of visited words, a list of words, a threshold value for the crossword be be filled
-    :rtype: Crossword or None 
-    :return: the most filled crossword we can generate by searching with best first search and our heuristic, or None if we cannot surpass the threshold
-    """ 
-    # pick word (use heuristic here? will do it just by order in the dictionary for now)
-    n= len(word_list)
-    if n == 0:
-        return crossword
-    word= word_list[0]
-    word_list= word_list[1:n]
-    clue= clue_list[0]
-    clue_list= clue_list[1:n]
-    # print(word)
-    crosswords= []
-    filled = []
-    queue = []
-    locs = crossword.find_locs(word)
-
-    # Generate all possible locations for this word in current crossword
-    while len(locs) < 1 and len(word_list) > 0:
-        word = word_list[0]
-        word_list= word_list[1:n]
-        clue = clue_list[0]
-        clue_list= clue_list[1:n]
-        locs = crossword.find_locs(word)
-        # print("finding word")
-        # print(word)
-        # print(locs)
-    if len(locs) > 0:
-    # Create all possible crosswords with these locations
-        for loc in locs:
-            y= copy.deepcopy(crossword)
-            # print("placed word")
-            y.place_word(word, clue, loc[0], loc[1], loc[2])
-            crosswords.append(y)
-        # for each crossword
-        for c in crosswords:
-            # print("generated crossword:")
-            # print(c.print_matrix())
-            if c.words in visited:
-                filled.append(0)
-            else: 
-                # add to visited
-                # print("added to visited")
-                visited.append(c)
-                # calculate value according to heuristic
-                filled.append(getHeuristicValue(c, heuristic))
-                # if goal, return
-                if c.percentFilled() > threshold:
-                    # print("reached threshold")
-                    return c
-        # add to stack with highest priority first
-        sort= [x for _, x in sorted(zip(filled, crosswords), key=lambda pair: -1 * pair[0])]
-
-        for ele in sort:
-            queue.append(ele)
-            # print("adding to queue")
-        # while there are things in the queue
-        while len(queue) > 0:
-            # print("best first search")
-            # pop 
-            x= queue.pop()
-            # print(x.print_matrix())
-            # recurse with reduced list of words
-            best= recursive_best_first_search(x, heuristic, visited, word_list, clue_list, threshold)
-            if not (best == None):
-                if best.percentFilled() > threshold:
-                    return best
-    # if all fails
-    return None
 
 def recursive_beam_search(crossword, heuristic, visited, word_list, clue_list, beam_size, threshold):
     """
