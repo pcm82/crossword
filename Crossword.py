@@ -19,6 +19,12 @@ class Crossword:
     
     def get_words(self):
         return self.words 
+    
+    def __lt__(self, other):
+        if self.numwords > other.numwords:
+            return other
+        else: 
+            return self
 
     def print_matrix(self):
         """
