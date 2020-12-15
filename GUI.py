@@ -1,13 +1,15 @@
 import PySimpleGUI as sg 
 import numpy
+import pandas as pd
 import CreateCrossword
 import ast
 import Crossword
 
 BOX_SIZE = 50 # pixel size of box
 
-def makeGUI(dim, crossword, words): 
-  sg.theme('DarkRed')
+def makeGUI(dim, crossword, words, approach): 
+  sg.theme('DarkRed') 
+
   text_ids = [None]*dim
 
   # prepare words 
@@ -29,12 +31,14 @@ def makeGUI(dim, crossword, words):
   across.sort(key=lambda x: int(x[0]))
   down.sort(key=lambda x: int(x[0]))
 
+  # create list to render 
   across = "".join([str(clue) + "\n" for clue in across])
   down = "".join([str(clue) + "\n" for clue in down])
-  #todo: make graph size dynamic, unsolved / solved button toggle 
   
+  # set up the GUI screen
   layout = [
     [sg.Text(text="Welcome to Any Person Any Crossword")],
+    [sg.Text(text="You have selected the " + approach)],
     [sg.Graph((dim*BOX_SIZE+10,dim*BOX_SIZE+10), (0,dim*BOX_SIZE+10), (dim*BOX_SIZE+10,0), key='_GRAPH_')], 
     [sg.Text("Across \n" + across)],
     [sg.Text("Down \n" + down)],
@@ -45,9 +49,9 @@ def makeGUI(dim, crossword, words):
 
   window = sg.Window('Crossword Puzzle').Layout(layout).Finalize()
   
+  # build crossword
   g = window.FindElement('_GRAPH_')
 
-  # todo: change fonts 
   for row in range(dim):
     text_ids[row] = [None]*dim
     for i in range(dim):
@@ -61,11 +65,7 @@ def makeGUI(dim, crossword, words):
       else: # letter does not belong here
         g.DrawRectangle((i*BOX_SIZE+5,row*BOX_SIZE+3), (i*BOX_SIZE+BOX_SIZE+5,row*BOX_SIZE+BOX_SIZE+3), line_color='black', fill_color='black')
 
-      # corner number
-      # g.DrawText('{}'.format(row*dim+i+1),(i*BOX_SIZE+10,row*BOX_SIZE+8))
-
-
-
+  # display
   while True: 
     event, values = window.read()
     if event == sg.WINDOW_CLOSED or event == 'Quit':
@@ -88,14 +88,19 @@ def makeGUI(dim, crossword, words):
 if __name__ == '__main__':
   print("Welcome to Any Person Any Crossword.")
 
+  short = {"hello": "CS_greeting[0]", "world":"CS_greeting[1]", "foobar":"cs func", "hell": "not heaven", "like": "enjoy", "seen": "noticed", "hi": "hey", "sup": "casual hey", "bellow": "loud yell", "cupholder": "hold my drink", "uplifting": "raise me up"}
+  cornell = pd.read_excel('Words,clues.xlsx')
+  cornell = cornell.set_index('Word')['Clue'].to_dict()
+
   custom = input("Do you want to customize your dictionary? Y/N\n> ")
-  approach = input("What approach would you like to use? 'Best' or 'Brute'\n> ")
+  approach = input("What approach would you like to use? 'Best', 'Brute', or 'Beam'\n> ")
 
-  testDict = {"hello": "CS_greeting[0]", "world":"CS_greeting[1]", "foobar":"cs func", "hell": "not heaven", "like": "enjoy", "seen": "noticed", "hi": "hey", "sup": "casual hey", "bellow": "loud yell", "cupholder": "hold my drink", "uplifting": "raise me up"}
+  testDict = cornell
   thresh = 10/16
-  dim = 4
+  dim = 5
 
-  if custom == "Y":
+  # customization
+  if custom == "Y" or custom == 'y':
     dim = input("How big of a crossword would you like to use?\n> ")
     dim = int(dim)
     thresh = input("What threshold would you like to use?\n> ")  
@@ -103,22 +108,27 @@ if __name__ == '__main__':
     testDict = input("What dictionary would you like to use?\n> ")
     testDict = ast.literal_eval(testDict)
   
-  if approach == 'Brute': 
-    flag = input("You have selected the Brute Force approach. Would you like to enable findBest? Y/N\n> ")
+  # generate the crossword
+  if approach == 'Brute' or approach == 'brute': 
+    method = 'Brute Force Algorithm'
     print("Working on it! Hang tight for your crossword")
-    if flag == 'Y':
-      crossword = CreateCrossword.bruteForceCreator(dictionary=testDict, threshold=thresh, size=dim, findBest= True)[0]
-    else:
-      crossword = CreateCrossword.bruteForceCreator(dictionary=testDict, threshold=thresh, size=dim, findBest= False)[0]
+    crossword = CreateCrossword.bruteForceCreator(dictionary=testDict, threshold=thresh, size=dim, findBest= False)[0]
+  elif approach == 'beam' or approach == 'Beam': 
+    method = 'Beam Search Algorithm'
+    beam = 10
+    if custom == "Y" or custom == 'y':
+      beam = int(input("What beam size would you like to use?"))
+    crossword = CreateCrossword.beamSearchCreator(dictionary = testDict, threshold = thresh, size = dim, beam_size = beam)
   else: 
+    method = 'Best First Search Algorithm'
     print("Working on it! Hang tight for your crossword")
-    crossword = CreateCrossword.bestFirstSearchCreator(dictionary = testDict, threshold = thresh, size = dim, heuristic= 0)
+    crossword = CreateCrossword.best_first_search(dictionary = testDict, threshold = thresh, size = dim, heuristic= 0)
   
-
+  # setup done, now to display
   if crossword == None: 
-    print("Unfortunately this crossword cannot be displayed")
+    print("Unfortunately this crossword cannot be displayed. It did not meet the threshold. ")
   else:
     dim = crossword.get_dim()
     fill = crossword.get_crossword()
     words = crossword.get_words()
-    makeGUI(dim, fill, words)
+    makeGUI(dim, fill, words, method)
