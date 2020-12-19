@@ -16,6 +16,7 @@ semilogy(d, times', 'LineWidth', 1)
 hold on
 semilogy(d, mean(times), 'k--', 'LineWidth', 1)
 hold off
+c= polyfit([d; d; d; d; d; d; d; d; d; d], log(times), 1);
 grid on
 title("Effect of Crossword Size on Best First Search")
 xlabel("Crossword Dimension")
@@ -27,6 +28,11 @@ print(gcf,'bestFirst.png','-dpng','-r200');
 [rho,pval] = corr(d', mean(times)','Type','Spearman');
 disp(rho)
 disp(pval)
+
+disp("Fitted line:") 
+disp("ln(y) = " + c(1) + " * x + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * " + "e^" + c(1) + "x")
 
 %% actual best first search
 
@@ -46,6 +52,7 @@ semilogy(d, times', 'LineWidth', 1)
 hold on
 semilogy(d, mean(times), 'k--', 'LineWidth', 1)
 hold off
+
 grid on
 title("Effect of Crossword Size on (Real) Best First Search")
 xlabel("Crossword Dimension")
@@ -71,6 +78,7 @@ hold on
 semilogy(d, mean(t), 'k--', 'LineWidth', 1)
 hold off
 grid on
+c= polyfit([d; d; d; d; d], log(t), 1);
 title("Effect of Crossword Size on Beam Search")
 xlabel("Crossword Dimension")
 ylabel("Time (seconds)")
@@ -80,6 +88,11 @@ print(gcf,'beamCrossSize.png','-dpng','-r200');
 [rho,pval] = corr(d', mean(t)','Type','Spearman');
 disp(rho)
 disp(pval)
+
+disp("Fitted line:") 
+disp("ln(y) = " + c(1) + " * x + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * " + "e^" + c(1) + "x")
 
 % beam size on the search: 
 b= [1,4,10, 32, 100, 317, 1000, 3163, 10000, 31623];
@@ -108,7 +121,7 @@ subplot(1,2,2)
 semilogx(b, sum(success,1) ./ length(t(:,1)), "LineWidth", 1)
 title("Percent Success of Beam Search")
 xlabel("Beam Size")
-ylabel("Propotion of Successful Trials")
+ylabel("Proportion of Successful Trials")
 set(gcf, 'Position',  [100, 100, 1000, 400])
 
 print(gcf,'beamBeamSize.png','-dpng','-r200');
@@ -198,11 +211,23 @@ disp("Best First Ratio:")
 [rho,pval] = corr(log(d)',log(times(1,:) ./ times(2, :))','Type','Spearman');
 disp(rho)
 disp(pval)
+c= polyfit(log(d), log(times(1,:) ./ times(2,:)), 1);
+
+
+disp("Fitted line:") 
+disp("ln(y) = " + c(1) + " * ln(x) + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * x^" + c(1))
 
 disp("Beam Search ratio:")
 [rho,pval] = corr(log(d)',log(times(1,:) ./ times(3,:))','Type','Spearman');
 disp(rho)
 disp(pval)
+c= polyfit(log(d), log(times(1,:) ./ times(3,:)), 1);
+disp("Fitted line:") 
+disp("ln(y) = " + c(1) + " * ln(x) + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * x^" + c(1))
 %% Brute Force vs Best First search: Dictionary Size
 
 n= [3, 4, 5, 6, 8, 10, 14, 18, 24, 32, 43, 57, 75, 100, 134, 178, 238, 317, 422, 563];
@@ -288,6 +313,19 @@ ylabel("Runtime (s)")
 grid on
 print(gcf,'crossSizeCompareBBBbad.png','-dpng','-r200');
 hold off
+disp("ratios:")
+c= polyfit(log([n; n; n; n; n]), log(t_brute ./ t_best), 1);
+disp("Fitted line (Best First):") 
+disp("ln(y) = " + c(1) + " * ln(x) + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * x^" + c(1))
+
+c= polyfit(log([n; n; n; n; n]), log(t_brute ./ t_beam), 1);
+disp("Fitted line (Beam):") 
+disp("ln(y) = " + c(1) + " * ln(x) + " + c(2))
+disp("Rearranged: ")
+disp(" y = " + exp(c(2)) + " * x^" + c(1))
+
 
 
 %% brute force vs Beam Search: Crossword Size
